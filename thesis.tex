@@ -77,8 +77,8 @@ We also study the case of transfer learning with our algorithm used for selectio
 \part{Introduction}
 \chapter{Introduction and Motivation}
 
-Stochastic Gradient Descent(SGD) methods are one of the main reasons for the success of Deep Learning. With the availability of "Big-Data" stochastic methods have proven to be the most effective methods for training Deep Neural Networks, as training on the full dataset is infeasible. \\\\
-In machine learning we are interested in minimizing the loss function which is generally of the form,
+Stochastic Gradient Descent(SGD) methods are one of the main reasons for the success of Deep Learning. With the availability of "Big-Data" stochastic methods have proven to be the most effective methods for training Deep Neural Networks. \\ \\ 
+In machine learning we are interested in minimizing the loss function generally of the form,
 \begin{equation*}
     F(\theta) = \textbf{argmin} \frac{1}{N} \sum_{i=1}^N  f(x_i; \theta)
 \end{equation*}
@@ -89,8 +89,8 @@ Typically, f is convex and denotes the misfit between the i-th training instance
 % Is this correct?
 % 
 % ^ <krishnakant.singh@suiit.ac.in> 2018-06-17T13:16:42.633Z.
-The training data is represented as ${x_i, y_i}$ where N denotes the total number of data points.
-A typical way of solving these optimization problems is through gradient descent algorithm
+The training data is represented as ${x_i, y_i}$ and N denotes the total number of data points.
+A typical way of solving these optimization problems is through gradient descent algorithms,
 \begin{align}
 \begin{split}
     \theta_{t+1}&=\theta_{t} - \eta \frac{1}{N}\sum_{i=1}^N \nabla( ; \theta_t)\\
@@ -98,14 +98,14 @@ A typical way of solving these optimization problems is through gradient descent
                             & \nabla(; \theta_t) = \sum_{i=1}^N\nabla(f(x_i; \theta_{t}))
       \end{split}
 \end{align}
-The problem with above formulation is that we are required to calculate the gradients of each of the N data points, which is prohibitively expensive even for a small N. SGD provides a solution to above problem where the parameter update is conditioned upon only a  single  data point selected uniformly as random
+The above formulation requires gradients for each of the N data points, which is prohibitively expensive even for a small N. SGD provides a solution to above problem where the parameter update is conditioned upon only a  single  data point selected uniformly at random
 \begin{align}
 \begin{split}
     &\theta_{t+1}=\theta_{t} -  \eta  \nabla(x_i, \theta_t) \\
 \end{split}   
 \end{align}
     
-It can be seen that $\nabla(x_i, \theta_t)$ is an unbiased estimate of  full batch gradient $\nabla (:, \theta_t)$ as  $\E (\nabla( x_i, \theta_t)) = \frac{1}{N}\sum_{i=1}^N \nabla f(x_i; \theta_t)$ but, SGD can introduce high variance between the estimated gradient $\nabla(x_i, \theta_t)$ and the true gradient $\nabla(; \theta_t)$ , due to this reason stochastic gradients have a much slower convergence to the optimal parameters. A simple way of reducing the variance is to use mini-batch SGD. 
+It can be shown that $\nabla(x_i, \theta_t)$ is an unbiased estimate of the full batch gradient $\nabla (:, \theta_t)$ , $\E (\nabla( x_i, \theta_t)) = \frac{1}{N}\sum_{i=1}^N \nabla f(x_i; \theta_t)$ but, SGD introduces high variance between the estimated gradient $\nabla(x_i, \theta_t)$ and the true gradient $\nabla(; \theta_t)$ , due to this reason stochastic gradients methods have a much slower convergence.  A simple way of reducing the variance is to use mini-batch SGD. 
 \begin{align}
 \begin{split}
     &\theta_{t+1}=\theta_{t} -  \frac{1}{k}\eta  \sum_{i=1}^k \nabla (x_i, \theta_t) \\
@@ -114,7 +114,7 @@ It can be seen that $\nabla(x_i, \theta_t)$ is an unbiased estimate of  full bat
 \end{align}
 \\ 
 \section{Importance Sampling}
-Another way of reducing the variance induced by stochastic sampling is to sample data points that are representative of the full data set.  Higher importance should be given to data points that provide the most information to the network, in literature \cite{shrivastava2016training} this called as hard example mining. Choosing the data points in this way is called Importance Sampling.  % * <vineethnb@iith.ac.in> 2018-03-04T13:38:10.150Z:
+Creation of a minibatch which is representative of the full data set can help in reducing the variance due to the stochastic sampling. Higher importance should be given to data points that provide the most information to the network, in literature this called as hard example mining\cite{shrivastava2016training}.  This way of choosing the data points is also popularly called Importance Sampling.  % * <vineethnb@iith.ac.in> 2018-03-04T13:38:10.150Z:
 % 
 % > \begin{align*}
 % >     \theta^+= \theta-\sum_{i=1}^B \frac{1}{B} \nabla(f(x_i; \theta))\\
@@ -123,12 +123,12 @@ Another way of reducing the variance induced by stochastic sampling is to sample
 % 
 % ^ <krishnakant.singh@suiit.ac.in> 2018-06-22T12:42:50.086Z.
 
-At present we approximate the full gradient using a Monte Carlo estimate given by
+In standard SGD full gradient is approximated using a Monte Carlo estimate given by
 \begin{align}
 \tilde{\nabla}(f(; \theta_t)) & = \frac{1}{B}\sum_{i=1}^B p(x_i) \nabla(f(x_i; \theta_t))\\
 & = E_{p(x)}\nabla(f(x_i; \theta_t)
 \end{align}
-Here p(x) denotes the sampling distribution (Uniform) and that we use  for selecting B data points ie , $P(x=x_i) = p(x=x_i) = \frac{1}{B}$ \\
+Here $p(x)$ denotes the sampling distribution that is used for selecting B data points ie , $P(x=x_i) = p(x=x_i) = \frac{1}{B}$ \\
 This approximation can be improved using Importance Sampling as follows
 \begin{align}\label{imp-sample}
 \begin{split}
@@ -137,8 +137,8 @@ This approximation can be improved using Importance Sampling as follows
     \tilde{\nabla}(f(; \theta_t)) & = E_{q(x)}\left( \frac{p(x_i)}{q(x_i)}  \nabla(f(x_i; \theta_t))\right)\\
  \end{split}
 \end{align}
-Here q(x) denotes the surrogate sampling distribution and that we use  for selecting B data points ie , $P(x=x_i) = q(x=x_i)$ \\
-In later section we show that if q(x) chosen in appropriately, then we get an unbiased estimator. Also we prove that using importance sampling leads to variance reduction. It is important to note that q(x) is just a dummy variable.
+Here q(x) denotes the surrogate sampling distribution, that is used for selecting B data points ie , $P(x=x_i) = q(x=x_i)$ \\
+In chapter 3 we show that if q(x) is chosen appropriately, is an unbiased estimator. Also, we prove that using importance sampling leads to variance reduction. 
 % * <vineethnb@iith.ac.in> 2018-03-04T13:40:10.975Z:
 % 
 % > \begin{align*}
@@ -177,38 +177,37 @@ The above reduces to standard SGD if $w_{I_t} = 1$ and $p^t(x_i) = \frac{1}{N}$
     \theta_{t+1}= \theta_t- \frac{\eta}{N} \sum_{i=1}^N  \nabla(f(x_{I_t}; \theta_t))\\
 \end{align}
 
-Some known strategies for importance sampling for SGD are to sample data points proportional to the loss, gradient wrt to current parameters for the model etc.  Sampling with respect to gradients essential is an case of hard example mining. \\
-But, the drawback with gradient based sampling is that for sampling it requires the full gradient and it is sensitive to outliers. Moreover, mini-batches should consist of not only the most informative data points but also points that are diverse enough to represent the full data set for eg include data points from all classes rather than just one class. This becomes much more important in the case of imbalanced datasets which require that sampling data points for classes such that we get more balanced minibatches.
-\\
+Some known strategies for importance sampling in SGD are to sample data points proportional to the loss, or to gradients of the parameters. Sampling with respect to gradients is essentially a case of hard example mining. \\
+The drawback with gradient based sampling is that it requires the full gradient and is sensitive to outliers. Moreover, mini-batches should not only consist of the most informative data points but also points that are diverse enough to represent the full data set for eg it is better to include data points from all classes rather than just one class. This becomes much more important in the case of imbalanced datasets. \\
 \section{Diversity}
-The diversity of mini-batch is an important quality for circumventing the problem of bias in mini-batches. A popular method for modeling diversity in literature is to use Submodular Functions. A submodular functions is defined as follows,\\
-A function $f:2^V\longleftarrow R$ is sub modular if for any A$\subseteq$ B $\subseteq$ V, and v $\in$ V/B,we have that:
+The diversity of mini-batch is an important quality for circumventing bias in mini-batches. A popular method for modeling diversity in literature is to use Submodular Functions. A submodular functions is defined as ,\\
+A function $f:2^V\longrightarrow R$ is submodular if for any A$\subseteq$ B $\subseteq$ V, and v $\in$ V/B,we have that:
     \begin{equation*}
         f(A\cup v) - f(A)\geq f(B\cup v)- f(B)    
     \end{equation*}
-using the definition we can  see that submodular functions  are good candidates for modeling diversity. The above property is called the diminishing return property of the submodular functions. Submodular function are ideally suited for selection of a diverse set of data points as, these functions are easy to maximize as they just require the most greedy solution at each step which makes their optimization fast. 
+using this definition we can  see that submodular functions  are good candidates for modeling diversity. The above property is popularly known as the diminishing return property. Submodular function are ideally suited for selection of a diverse set of data points. Also, submodular function are easy to maximize as they just require the greedy solution at each step which makes their optimization fast. 
 
 Another  popular approach for modeling diversity is Deterministic Point Process(DPP) which use a similarity kernel $\mathbf{L}^{N \times N}$ , $\mathbf{L}_{ij}$ denoting the similarity between data points i and j for sampling diverse data points. \\
-The DPP assigns a probability of sub sampling any subset Y $\subseteq \{1,...,N\}$, which is proportional to the determinant of the sub-matrix $\mathbf{L_Y}$ of   $\mathbf{L}$ which indexes the subset,
+The DPP assigns a probability of sub sampling any subset Y $\subseteq \{1,...,N\}$, proportional to the determinant of the sub-matrix $\mathbf{L_Y}$ of   $\mathbf{L}$, 
 \begin{equation} \label{dpp_eq}
 P(Y) = \frac{\text{det}(\mathbf{L}_Y )} { \text{det}(\mathbf{L}+I)} \propto \text{det}(\mathbf{L}_Y)
 \end{equation}
-For instance, if Y = {i, j} consists of only two elements,
-then P(Y) $\propto \mathbf{L}_{ii} \mathbf{L}_{jj} - \mathbf{L}_{ij}\mathbf{L}_{ji}$. Because $\mathbf{L}_{ij}$ and $\mathbf{L}_{ji}$ measure the similarity between elements i and j, being more similar lowers the probability of co-occurrence. On the other hand, when the subset is very diverse, the determinant is bigger and correspondingly its co-occurrence is more likely. The DPP thus, naturally diversifies the selection of subsets.\\
+For instance, if $Y$ consists of only two elements i and j,
+then P(Y) $\propto \mathbf{L}_{ii} \mathbf{L}_{jj} - \mathbf{L}_{ij}\mathbf{L}_{ji}$ where $\mathbf{L}_{ij}$ and $\mathbf{L}_{ji}$ measure the similarity between elements i and j, being more similar lowers the probability of co-occurrence. On the other hand, a diverse subset has a higher value of the determinant. Thus, DPP naturally favours a diversified selection of subsets. \\
 
 DPP and other similar models come under the class of functions called Probabilistic Submodular Functions(PSF). A major problem in using DPP for minibatch selection is that sampling from a DPP is an expensive operation it scales polynomially with number of data points size $O(N^3)$. \\
-Thus, a need arises for models that model diversity as well as DPP but, are much easier to sample from.  Another, problem with DPP is defining the similarity kernel for datasets which can be hard to find for more complex datasets. 
+Thus, a need arises for methods that model diversity as well as DPP but, are much easier to sample from.  Another, issue with DPP is that it is hard to always define a meaningful similarity kernels for datasets. 
 \\
 \\
-The main contributions of our work are the following 
+The main contributions of our work are as following 
 \begin{itemize}
-    \item Design a sampling scheme that encodes both importance of sample and also sample diversity for the creation of representative batch for the whole data set.
-    \item Use of submodular objective function for assigning weights to sample. This enables us to sample points in a greedy manner which is much better than existing DPP technique sampling.
+    \item Designing a sampling scheme that encodes both importance of sample and diversity for the creation of representative batches for the whole data set.
+    \item Constructing a method for scalable optimization of submodular objective function, thus enabling their use in the era of Big Data. 
     \item We prove that our method is an unbiased estimator for the full gradient and that it reduces variance in SGD and SGD-Type algorithms.
-    \item We carry out extensive experiments on several models and datasets. Our approach leads to faster learning and higher classification accuracy in image classification task. 
+    \item Our designed approach leads to faster convergence and higher classification accuracy in image classification task. Out methods is also more robust to the hyperparameters such as learning rate and minibatch size. 
 \end{itemize}
 
-As far as we know our work is one of the first to use submodular functions for importance sampling in the context of variance reduction in SGD. Also, we are one of first papers that perform large-scale image classification task on datasets such as cifar-10 and MIT-67 datasets.
+As far as we know our work is one of the first to use submodular functions for importance sampling in the context of variance reduction in SGD. Also, we are one of first papers that perform large-scale importance sampling based image classification task on datasets such as cifar-10 and MIT-67 datasets.
 
 \part{Prerequisites }
 
