@@ -212,47 +212,48 @@ As far as we know our work is one of the first to use submodular functions for i
 \part{Prerequisites }
 
 \chapter{Deep Neural Networks and Stochastic Gradient Descent}
-In this chapter we first give a brief overview of Neural Networks and Deep Learning. We then derive the Backpropgation algorithm and show how SGD(Stochastic Gradient Descent) Algorithm is used to train the network.
+In this chapter we first give a brief overview of Neural Networks and Deep Learning. We then show how the Backpropogation algorithm along with SGD(Stochastic Gradient Descent) is used to train a neural network.
 \\\\
 Machine learning is commonly divided into two main types:
 \begin{itemize}
-\item Supervised Learning: In this type of learning we are trying to learn a hypothesis $\mathcal{H} : X \rightarrow y$ which maps from the input data domain to the outputs (or training signal). If the output set Y is finite, we say that the task is a classification task and if it is continuous we say that it is a regression task.
+\item Supervised Learning: These methods try to learn a hypothesis $\mathcal{H} : X \rightarrow Y$ which maps the input data domain to the output data domain as well as possible. If the output set Y is finite, we say that the task is a classification task and if it is continuous we say that it is a regression task.
 \item Unsupervised Learning: If all we have is the input data X and no output data to guide our training, the task is called unsupervised learning. The focus in this type of learning is
 to discover hidden structure in the data. Common problems in unsupervised learning are dimensionality reduction and clustering of the input data.
 \end{itemize}
 
-Deep Learning has revolutionized the fields of both supervised 
-and Unsupervised Learning. Tasks which once seemed impossible to be ever done by a machine are now being excelled at by machines. ImageNet Classification challenge which sparked the boom for the Deep Learning Research, is a solved problem now with the machine learning  achieving super human level of accuracies on the task. \\ \\
-There still exist a few problems with Deep Learning such as, 
+Recently deep Learning has revolutionized the field of both supervised 
+and Unsupervised Learning. Tasks which once seemed impossible to be done by a machine are now being excelled at . ImageNet Classification challenge which sparked the boom for the Deep Learning Research, is now a solved problem with the machines achieving super-human level of accuracies on the task. \\ \\
+Though deep learning methods still suffer from some huge problems like, 
 \begin{itemize}
-\item Dataset: Deep Learning Networks require huge amounts of Data to trained. It is not always possible to have acess to such data. There is a need for algorithms that train faster and better using only a small subset of data.
+\item Large Dataset: Deep Learning Networks require huge amounts of data to trained. It is not always possible to have acess to such data. There is a need for algorithms that train faster and better using only a small subset of data.
 \item Performance on Imbalanced datasets: Deep learning system generally perform poorly on imbalanced datasets, this is due to the fact that the network is unable to learn classes/events which occur very sparsely in the dataset.
 \end{itemize}
-Our work tries to mitigate both of the above points through importance sampling for training of Deep Neural Networks.
+Our work tries to mitigate both of the above points through the use importance sampling for training of Deep Neural Networks.
 
-In this section we derive the back propagation algorithm used to train neural networks. \\
+In the next section we derive the now popular back propagation algorithm used to train neural networks. \\
 \section{Neural Network}\footnote{\label{NN}In this section subscript$_i$  denotes  denotes i th dimension. But everywhere else subscript$_i$  denotes i th data point}
 \begin{figure}[!htb]
 \centering
 \includegraphics[width=0.5\textwidth]{images/nn.png}
 \caption{A one layer NN network}
+\label{Simple NN}
 \end{figure}
-We take a Neural Network (NN) with the following parameters 
+We take a Neural Network (NN) as shown in fig \ref{Simple NN}} with the following parameters, 
 \begin{itemize} 
 \item Input vector of length of K, $x = (x_1, x_2, x_3, ....., x_K)$. 
-\item Hidden layer consists of N neurons$h = (h_1, h_2, h_3, ....., h_N)$. 
+\item Hidden layer consists of N neurons $h = (h_1, h_2, h_3, ....., h_N)$. 
 \item Ouput layer is of size M, $\textbf{y} = (y_1, y_2, y_3,...., y_M)$. 
 \end{itemize}
 Every neuron in the input layer is connected to all the neurons in the hidden layer, the connection weight between neuron i and k is given by $w_{ki}$. Similarly, all the neurons in the hidden layer are connected to the output layer, the connection weight between the ith hidden neuron and j th output neuron is given by $w_{ij}'$.\\
-We can think of $w_{ki}$ as the k,i entry in the matrix $\mathbf{W}^{K \times N}$, similarly $w_{ij}'$ can be considered as the i,j entry in the $\mathbf{W}^{K \times N}$,. The activation function f is equal the sigmoid activation function.
+We can think of $w_{ki}$ as the k,i entry in the matrix $\mathbf{W}^{K \times N}$, similarly $w_{ij}'$ can be considered as the i,j entry in the $\mathbf{W}^{K \times N}'$,. The activation function f is the sigmoid activation function.
 \\ 
 \\
 \textbf{Forward Pass}
-In the forward pass we pass a single data point through the NN.
+The forward pass can be expressed by the following equations, 
 \begin{align}
 &h_i = f(u_i) = f(\sum_{k=1}^K w_{ki} x_k) \hspace{0.8pt} [\text{This is the ouput of the i th neuron in the hidden layer }] \\
 &y_j=f(u_{j}^{'})=f(\sum_{i=1}^K w_{ij}^{'} h_i) \hspace{0.8pt} [ \text{This is the ouput of the j th neuron in the ouput layer} ] \\
-&\text{We assume a Mean Squared Error Loss} \\
+&\text{if we assume a Mean Squared Error Loss} \\
 &E(x) = \frac{1}{2} \sum_{j=1}^M (y_j - t_j)^2
 \end{align}
 \newpage
@@ -272,7 +273,7 @@ Similarly we can get, \begin{align}
 \frac{\partial E(x)}{w_{ki}} = \frac{\partial E}{\partial y_j}\frac{\partial y_j}{\partial u_{j}'}\frac{\partial u_{j}'}{\partial h_i}\frac{\partial h_i}{\partial u_i}\frac{\partial u_i}{\partial w_{ki}}
 \end{align}
 
-This is the famous Backpropogation algorithm it is called so, because we are back propagating the gradients from output to the input.\\
+This is the famous Backpropogation algorithm it is so called, because we are back propagating the gradients from output to the input.\\
 The update rule for parameters  is given by 
 \begin{align}
 w_{ij}'^{+} = w'_{ij} - \eta * \frac{\partial E(x) }{w_{ij}'}
@@ -287,9 +288,9 @@ For ease of discussion we now employ the following convection for parameter upda
 \begin{align}
 \theta_{t+1} = \theta_{t} - \frac{\eta}{N} \sum_{i=1}^N \nabla(f(x_i; \theta_t))
 \end{align}
-Here f denotes the Loss function and $\textbf{x}_i$ denotes the i th point in the dataset $\mathcal{D}$ of size N . We can see that computing the gradient  for all of the N data points is computationally expensive. In practice only a part of dataset is used for computing the gradient and  updating of the parameters. \\
+Here f denotes the Loss function and $x_i$ denotes the i th point in the dataset $\mathcal{D}$ of size N . We can see that computing the gradient  for all of the N data points is computationally expensive. In practice only a part of dataset is used for computing the gradient and  updating of the parameters in one iteration. \\
 \subsection{Stochastic Gradient Descent (SGD)}
-The stochastic gradient estimates the true gradient on the whole dataset by using the gradient of only a single data point. The update rule for the SGD algorithm is given by 
+The stochastic gradient estimates the true gradient on the whole dataset by using only a single data point. The update rule for the SGD algorithm is given by 
 \begin{align}
 \theta_{t+1} = \theta_{t} - \eta \nabla(f(x_i; \theta_t)) \label{SGD}
 \end{align}
@@ -297,7 +298,7 @@ We can show that the stochastic gradient  $\nabla(f(x_i; \theta_t)$ is an unbias
 \begin{align}
 E(\nabla(f(x_i; \theta_t))) = \frac{1}{N} \sum_{i=1}^N \nabla(f(x_i; \theta_t) 
 \end{align}
-This show that the stochastic gradient estimate is unbiased but, the variance of stochastic gradient algorithm is non-zero as can be seen below , \\
+This shows that the stochastic gradient estimate is unbiased, but the variance of stochastic gradient algorithm is non-zero as shown below , \\
 Using Taylor Series and assuming that f is an L-smooth function we get
 \begin{align}
 \E f(x; \theta_{t+1}) &\leq \space  \E f(x; \theta_t) - \eta \E \big(\nabla f(x, \theta)^T (\theta_{t+1} - \theta_{t})\big) - \frac{L\eta^2}{2} \E || (\theta_{t+1} - \theta_{t}) || ^2 \\
@@ -306,7 +307,7 @@ Using Taylor Series and assuming that f is an L-smooth function we get
 &\leq \E f(x; \theta_t) - \eta(1 -\frac{L\eta}{2}) ||\E \nabla f(; \theta_{t})||^2 + \frac{L\eta^2}{2}  \mathbb{V}(\nabla f(x ;\theta)) \label{Variance Red}
 \end{align}
 Where , $\mathbb{V}(\nabla f(x; \theta)) = \E || \nabla f(x; \theta) - \E\nabla f(x; \theta)||^2 $.\\\\
-For the above Eq \ref{Variance Red} the smaller the variance the the more the reduction on the objective function we get. \\ In the next chapter we see some popular techniques in literature that have been used for variance reduction.
+From the above Eq \ref{Variance Red} it can be easily seen that a smaller variance helps in getting to a better optimal solution faster.\\ In the next chapter we see some popular techniques in literature that have been used for variance reduction.
 
 \chapter{Variance Reduction Techniques}
 
