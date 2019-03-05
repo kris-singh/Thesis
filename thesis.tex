@@ -179,7 +179,7 @@ The above reduces to standard SGD if $w_{I_t} = 1$ and $p^t(x_i) = \frac{1}{N}$
 
 Some known strategies for importance sampling in SGD are to sample data points proportional to the loss, or to gradients of the parameters. Sampling with respect to gradients is essentially a case of hard example mining. \\
 The drawback with gradient based sampling is that it requires the full gradient and is sensitive to outliers. Moreover, mini-batches should not only consist of the most informative data points but also points that are diverse enough to represent the full data set for eg it is better to include data points from all classes rather than just one class. This becomes much more important in the case of imbalanced datasets. \\
-\section{Diversity}
+\section{Diversity}\label{diversity_explained}
 The diversity of mini-batch is an important quality for circumventing bias in mini-batches. A popular method for modeling diversity in literature is to use Submodular Functions. A submodular functions is defined as ,\\
 A function $f:2^V\longrightarrow R$ is submodular if for any A$\subseteq$ B $\subseteq$ V, and v $\in$ V/B,we have that:
     \begin{equation*}
@@ -837,12 +837,12 @@ p_k \propto \frac{|C_k|}{N} \sqrt[]{\frac{1}{|C|_k} \sum_{i \in C_k } || \nabla 
 Intuitively, we select data points from bins that have a larger gradient. \\
 This is a simple idea achieves great results on tasks of Logistic Regression but the method does not scale well to the larger datasets because of the need for calculating the gradient for finding $p_k$. Also it is not always possible to define side information for each and every dataset and problem.  
 
-\chapter{Diversity based sampling}
+\section{Diversity based sampling}
 
-As stated earlier while creating minibatches we should not only take into account the individual contribution of the samples towards variance reduction but also how the whole group
+Up until now we have only seen examples of sampling methods that consider the importance of samples individually. As stated earlier it is also important to consider the interactions of the samples in the minibatches with each other. The minibatches so constructed should be representative of the full dataset. In this section we elaborate how existing methods have tried to model this representativeness for usage in sampling methods for variance reduction.
 
-\section{Determinantal Point Processes for Mini-Batch Diversification\cite{zhangdiversified}}
-The paper argues that creation minibatches that are diverse enough to be representative of the full dataset result in a variance reduction for SGD. Diversity of minibatch can be defined as the dissimilarity between data points of the minibatch in some metric space. Diversity serves a important purpose when sampling from the highly imbalanced datasets since it samples from less represented classes. \\
+\subsection{Mini-Batch Diversification}
+One way of modeling representativeness and interaction of the samples is using diversity of the minibatch. In \cite{zhangdiversified} argue that creation minibatches that are diverse enough to be representative of the full dataset result in a variance reduction. Diversity of minibatch can be defined as the dissimilarity between data points of the minibatch in some metric space. Diversity serves a important purpose when sampling from the highly imbalanced datasets since it samples from less represented classes. \\
 \begin{figure}[!htb] 
 \centering
 \includegraphics[width=0.5\textwidth] {images/diversity}
@@ -850,23 +850,21 @@ The paper argues that creation minibatches that are diverse enough to be represe
 \label{Dpp_fig}
 \end{figure}
 
-As stated earlier Eq\ref{diversitynphard} diversity maximization is a NP-Hard Problem. The authors suggest using  Determinantal Point Process(DPP) for solving the diversity maximization problem. \\In DPP sampling the first step, is to create a similarity kernel matrix $\mathbf{L}$ , where $\mathbf{L}_{ij}$ denotes the similarity between data points i and j. DPP assigns a probability to sub sampling any subset Y of the set \{1,...,N\}, which is proportional to the determinant of the sub-matrix $\mathbf{L_Y}$ of   $\mathbf{L}$ which indexes the subset,
+As stated earlier Eq \ref{diversitynphard} diversity maximization is a NP-Hard Problem. The authors suggest using  Determinantal Point Process(DPP) for solving the diversity maximization problem. \\ DPP sampling firstly creates a similarity kernel matrix $\mathbf{L}$ , where $\mathbf{L}_{ij}$ denotes the similarity between data points i and j. The probability of sub sampling any subset Y of the set \{1,...,N\}, is proportional to the determinant of the sub-matrix $\mathbf{L_Y}$, 
 \begin{equation} 
 P(Y) = \frac{\text{det}(\mathbf{L}_Y )} { \text{det}(\mathbf{L}+I)} \propto \text{det}(\mathbf{L}_Y)
 \end{equation}
-For instance, if Y = {i, j} consists of only two elements,
-then P(Y) $\propto \mathbf{L}_{ii} \mathbf{L}_{jj} - \mathbf{L}_{ij}\mathbf{L}_{ji}$. Because $\mathbf{L}_{ij}$ and $\mathbf{L}_{ji}$ measure the similarity between elements i and j, being more similar lowers the probability of co-occurrence. On the other hand, when the subset is very diverse, the determinant is bigger and correspondingly its co-occurrence is more likely. The
-DPP thus naturally diversifies the selection of subsets see \ref{Dpp_fig}. The paper use a different variant of DPP sampling called the k-DPP sampling which is DPP sampling conditioned on given size k .
+a DPP based sampling approch promotes diversity as explained in section\ref{diversity_explaine}. The paper used a different variant of DPP sampling called the k-DPP sampling which is DPP sampling conditioned on given size k .
 \begin{equation}
 P_{L} ^ K (Y) = \frac{\text{det}(\mathbf{L}_Y )} { \sum_{|Y'| =k }\text{det}(\mathbf{L}_{Y}')} 
 \end{equation}
- DPP sampling is particular case of sampling from the Probabilistic Submodular Function(PSF). We could potentially use other PSF also to sample a diverse set of points like Repulsive Point Processes(RPP) eg \cite{zhang2018active}. A major issue with DPP sampling is the computational time taken for sampling is O($N^3$) ie cubic in the number of data points, though faster DPP sampling methods are present they are still pretty slow. This is the reason the paper has only not been widely applied to the Deep Learning applications.
+ DPP sampling can be considered particular case of Probabilistic Submodular Function(PSF). Potentially other PSF can also be used to create diverse minibatches eg Repulsive Point Processes(RPP) eg \cite{zhang2018active}. A major issue with PSF based sampling methods is the computational time taken for sampling is approximated O($N^3$) ie cubic in the number of data points, though faster sampling methods have been proposed they are still pretty slow, this makes these methods infeasible for use in deep learning applications. 
 
-\chapter{Active Bias Sampling}
+\subsection{Active Bias Sampling}
 
 Active Bias sampling means to sample data having bias for a particular criteria. The criteria can be anything from magnitude of loss, gradient or lipschitz constant. There are various methods in the literature on these topics \cite{katharopoulos2017biased} \cite{katharopoulos2018not} \cite{zhao2015stochastic} \cite{chang2017active}.
 
-\section{Variance Reduction in SGD}
+\subsection{Variance Reduction in SGD}
 We can rewrite the SGD update rule  defined in Eq \ref{SGD} for importance sampling as follows ,
 \begin{equation}
 \theta_{t+1} = \theta_{t} - \eta w_{I_t} f(x_{I_t}; \theta_t)
