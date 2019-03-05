@@ -734,9 +734,9 @@ P(A) = $\frac{exp(F(A))}{\mathcal{Z}}$ , where F(A) = $\log |L_Y|$. Here, L $\in
 \part{Related Work}
 \chapter{Optimization Based Methods}
 \section{Optimization Based Methods}
-In this chapter we give a brief survey of  the works that use optimization techniques to solve the variance reduction problem is SGD.\\
+In this chapter we give a brief survey of the works that use optimization techniques to solve the variance reduction problem in SGD.\\
 
-As stated earlier one of the major disadvantages of using mini batch SGD is that the randomness due to sampling of data points can induce a large variance between the true gradient and the mini-batch gradient leading to slower convergence of SGD. Many variance reduction techniques have been introduced to tackle this issue. 
+As stated earlier one of the major disadvantages of using mini batch SGD is random sampling of data points can lead to a large variance between the true gradient and the mini-batch gradient leading to slower convergence of SGD. Many techniques have been introduced to tackle this issue. 
 \\
 Variance Reduction techniques can broadly be classified into two categories namely non-sampling based and sampling based methods. Remember in mini-batch SGD we have 
 \begin{equation}
@@ -750,50 +750,53 @@ Where B denotes the size of the minibatch. If we choose B=1, the variance of the
     &\nabla f(x_i; \theta_t): \text{mini batch Gradient}
 \end{split}
 \end{align}
-For reduction in variance we can either change how we create mini-batches(importance sampling), change learning rate($\eta$), change batch size($b$) or change the way we updates the parameters. We discuss how some works have used these to obtain variance reduction in SGD.
-\\ 
+For reduction in variance we can either change how we create mini-batches(importance sampling), change learning rate($\eta$), change batch size($b$) or change the way we updates the parameters. In this chapter we elaborate the non-sampling based/ optimization based techniques. 
+
 \section{Non-Sampling Based}
-These techniques are the one's that sample the data points using a uniform distribution. They can further be classified into the following\\
-\textbf{Averaging Techniques}: These techniques try to reduce variance using averaging of parameter \cite{polyak1992acceleration} or averaging of the gradients \cite{nesterov2013introductory}. Averaging based methods  try to get smooth approximation of gradients or parameters, thus reducing the variance. 
+These techniques sample the data points using a uniform distribution. These methods can further be specialized into the following categories \\
+\textbf{Averaging Techniques}: These techniques reduce variance using averaging of parameter \cite{polyak1992acceleration} or by averaging of the gradients \cite{nesterov2013introductory}. Averaging based methods get smooth approximation of gradients or parameters, leading to a reduction in variance. 
 \\
-If we look at Eq \ref{SGD}
+The simplest example of this method is the minibatch gradient decent algorithm, it can be shown that it reduces variance as follows,
+Using Eq~\ref{SGD}
 \begin{equation}
 \theta_{t+1} = \theta_{t} - \eta \nabla(f(x_i; \theta_t)) 
 \end{equation}
-and change the update rule to compute the gradient over a minibatch of data points $B = \{x_j \in \mathcal{D} \space| \space j={1, 2, ..., b}\}$ as follows 
+minibatch SGD changes the update rule to compute the gradient over a minibatch of data points $B = \{x_j \in \mathcal{D}\space|\spacej={1, 2, \ldots, b}\}$ as follows 
 \begin{equation} \label{MSGD}
 \theta_{t+1} = \theta_{t} - \frac{\eta}{b} \sum_{i=1}^B \nabla(f(x_i; \theta_t))  
 \end{equation}
 
-Where b denotes the size of a uniformly random sampled batch from full dataset $\mathcal{D}$. This called as Minibatch Gradient Descent. \\
-Minibatch Gradient Descent leads to reduction in the variance Changing Eq \ref{Variance Red} to, 
+Where b denotes the size of a uniformly random sampled batch from full dataset $\mathcal{D}$. \\
+Now using Eq~\ref{Variance Red} for minibatch SGD we get , 
 
 \begin{equation}
 \E f(x; \theta_{t+1}) \leq  f(x; \theta_t) - \eta(1 -\frac{L\eta}{2}) ||\E \nabla f(; \theta_{t})||^2 + \frac{L\eta^2}{2 b}  \mathbb{V}(f(x ;\theta) 
 \end{equation}
-Here we see that the variance reduces by factor b.  Though, the computation cost increase by b, but in general we require minibatch gradient descent for better generalization error in lesser time and also for parallelization of SGD.
+
+Here we see that the variance reduces by factor b. Although, the computation cost has increase by a similar factor of b, this cost can be reduced using a parallel version of SGD but in general this cost is innocuous. In general minibatch gradient descent leads to a better generalization error in lesser time.
 \\
 \\
-\textbf{Momentum} based techniques try to use momentum from past gradients to choose the descent direction\cite{johnson2013accelerating} \cite{schmidt2013minimizing} . The descent direction is based on the averaged descent direction which are updated periodically. 
-The simplest momentum based method uses the following update rule 
+\textbf{Momentum} based techniques use momentum from past gradients to choose the descent direction\cite{johnson2013accelerating} \cite{schmidt2013minimizing}. The descent direction is based on the averaged descent direction, which is updated periodically. 
+The simplest momentum based technique uses the following update rule 
 \begin{equation}
 \theta_{t+1} = \gamma \theta_{t} - \eta \nabla(f(x); \theta_t)) 
 \end{equation}
-$\gamma \leq 1$ parameter. Momentum based methods try to reduce the oscillation in gradient descent algorithm. It does by adding a damping factor $\gamma$ if a direction for optimization when the gradient for a dimension changes drastically. As a result, we gain faster convergence and reduced oscillation. When momentum method is combined with minibatch sgd  \ref{Variance Red} equation changes to 
+where $\gamma \leq 1$ parameter. Momentum based methods reduce the oscillation in update of the parameters. It does so by adding a damping factor $\gamma$, the factor is useful when the direction of the gradient changes drastically the $\gamma$ factor dampens the update thereby reducing the update in the wrong direction. The gamma factor favours a smooth change of direction in gradients. As a result, we gain faster convergence and reduced oscillation. When momentum method is combined with minibatch SGD Eq~\ref{Variance Red} changes to 
+
 \begin{equation}
 \E f(\textbf{x}; \theta_{t+1}) \leq  f(\textbf{x}; \theta_t) - \eta(1 -\frac{L\eta}{2}) ||\E \nabla f(; \theta_{t})||^2 + \frac{\gamma^2 \eta^2}{2 b}  \mathbb{V}(f(\textbf{x} ;\theta) 
 \end{equation}
+Here we can see that addding the momentum term has reduced the variance further by a factor of $\gamma^2$.
 \\
 \\
-\textbf{Adaptive Learning Rates and Batch Size}: Setting adaptive learning rates based on local curvature\cite{schaul2013no} or based on gradient information \cite{zeiler2012adadelta} has been shown to reduce variance. We show a particular case for AdaGrad Method, the update rule changes to 
+\textbf{Adaptive Learning Rates and Batch Size}: Setting adaptive learning rates based on local curvature\cite{schaul2013no} or based on gradient information \cite{zeiler2012adadelta} has been proved to reduce variance in SGD. We show a particular case of AdaGrad Method, the update rule changes to 
 \begin{equation}
 	\theta_{t+1} = \gamma \theta_{t} - \frac{\eta} {\epsilon + G_t} \nabla(f(\textbf{x}; \theta_t)) 
 \end{equation}
-Where $G_{t}^{D\times D}$,  G here is a diagonal matrix where each diagonal element i, is the sum of the squares of the gradients w.r.t. $\theta^i_t$ (i th dimension of $\theta$) up to time step t , while $\epsilon$ is a smoothing term that avoids division by zero. It adapts the learning rate to the parameters, performing smaller updates 
-(i.e. low learning rates) for parameters associated with frequently occurring features, and larger updates (i.e. high learning rates) for parameters associated with infrequent features. For this reason, it is well-suited for dealing with sparse data.
+where $G_{t}^{D\times D}$,  is a diagonal matrix, where each diagonal element i, is the sum of the squares of the gradients w.r.t. $\theta^i_t$ (i th dimension of $\theta$) up to time step t , while $\epsilon$ is a small value added to avoid division by zero. Adagrad adapts the learning rate based on the parameters, performing smaller updates 
+(i.e.\ low learning rates) for parameters associated with frequently occurring features, and larger updates (i.e.\ high learning rates) for parameters associated with infrequent features. For this reason, it is well-suited for dealing with sparse data. The interested reader is pointed to \cite{schaul2013no} for a more theoretical justification of variance reduction.
 \\
-
-Other papers have explored the coupling of learning rate and batching size. These methods try to optimizes for adaptive batch size for reduction of variance. Some methods \cite{balles2016coupling} try to adapt batch size based on the variance of the gradient estimates others \cite{devarakonda2017adabatch} adaptively increases the batch size during the training process slower initially and then doubling the batch sizes at specified intervals.\\
+Other papers have explored optimizing the batching size for variance reduction. These methods try to find a adaptive schedule for batch size that would reduce the variance. \cite{balles2016coupling} adapt batch size based on the variance of the gradient estimates, \cite{devarakonda2017adabatch} adaptively increases the batch size during the training process starting with a small batch size and doubling the batch sizes at specified intervals.\\
 
 \chapter{Importance Sampling through Optimization }
 We now discuss some importance sampling based methods. As discussed earlier in case of importance sampling\ref{Imporatnce Sampling}  instead to sampling from the defined distribution p(x) we try to find another distribution h(x). The tricky part is finding a distribution h(x) which is easy to sample from as well as it reduces the variance of the approximated quantity.
