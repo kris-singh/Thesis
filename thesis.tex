@@ -798,10 +798,12 @@ where $G_{t}^{D\times D}$,  is a diagonal matrix, where each diagonal element i,
 \\
 Other papers have explored optimizing the batching size for variance reduction. These methods try to find a adaptive schedule for batch size that would reduce the variance. \cite{balles2016coupling} adapt batch size based on the variance of the gradient estimates, \cite{devarakonda2017adabatch} adaptively increases the batch size during the training process starting with a small batch size and doubling the batch sizes at specified intervals.\\
 
-\chapter{Importance Sampling through Optimization }
-We now discuss some importance sampling based methods. As discussed earlier in case of importance sampling\ref{Imporatnce Sampling}  instead to sampling from the defined distribution p(x) we try to find another distribution h(x). The tricky part is finding a distribution h(x) which is easy to sample from as well as it reduces the variance of the approximated quantity.
+\chapter{Importance Sampling Based Methods}
+Importance sampling based methods reduce the variance by finding an optimal distribution to sample the data points. As discussed earlier in case of importance sampling\ref{Imporatnce Sampling} instead to sampling from the distribution p(x) we try to find another surrogate distribution h(x) to sample the data points from. The tricky part is finding a distribution h(x) which is easy to sample from as well as it reduces the variance of the approximated function. Importance sampling methods have widely used in literature, below we discuss some of these which are our most relevant to our work.
+\\
 \section{Online Learning To  Sample \cite{bouchard2015accelerating}}
-Remember the variance of importance sampling is given by Eq \ref{Variance Importance Sampling} 
+This is one of the first works to successfully show the usage of importance sampling methods for the case of Deep Learning models. The main ideas of the paper can be described as follows,   
+The variance of importance sampling is given by Eq \ref{Variance Importance Sampling} 
 \begin{equation}
 var(\widetilde{\theta}) =  \frac{1}{N}\int  \Big(\frac{f(x)p(x)}{h(x)}\Big)^2  h(x) dx  -\frac{\theta^2}{N}
 \end{equation}
@@ -809,32 +811,35 @@ Suppose that distribution comes from a family of distributions H(x; $\tau$), we 
 \begin{equation}
 var_{\tau}(\widetilde{\theta}) = \frac{1}{N}\int  \Big(\frac{f(x)p(x)}{h(x;\tau)}\Big)^2  h(x; \tau) dx  -\frac{\theta^2}{N}
 \end{equation}
-if we are sure that $f(x) \in H(x; \tau)$ then, there exist a $\tau^*$ such that $h(x; \tau^*) \propto f(x)$. In general this is not true and also finding a closed form solution for the min $var_\tau(\tilde\theta)$ is not possible. Hence we need to find an approximate variance reduction methods.  Taking the gradient wrt $\tau$  we get, 
+if $f(x) \in H(x; \tau)$ then, there exist a $\tau^*$ such that $h(x; \tau^*) \propto f(x)$. In general this is not true and also finding a closed form solution for the min $var_\tau(\tilde\theta)$ is not possible. The paper proposes for the use of an approximate learning method to solve the above problem as follows.  Taking the gradient wrt $\tau$  we get, 
 \begin{align}
 \nabla var_\tau(\tilde\theta) &= E_{h(x; \tau)}\Big(\frac{f(x)p(x)}{h(x;\tau)}\Big)^2 \\
 & = E_{h(x; \tau)}\Big(\frac{f(x)^2 \nabla_{\tau} h(x;\tau)}{h(x; \tau)^3}\Big)\\
 &= E_{h(x; \tau)}\bigg(\Big(\frac{f(x)}{h(x;\tau)}\Big)^2 \nabla_\tau\log h(x; \tau) \bigg)\\
 \end{align}
- We can update a value for $\tau$ using the SGD update rule, here $x_t \sim h(x_t; \tau)$
+ Now using SGD we can update a value for $\tau$ as, 
  \begin{equation}
  \tau_{t+1} = \tau_{t} - \eta \bigg(\Big(\frac{f(x_t)}{h(x_t;\tau)}\Big)^2 \nabla_\tau\log h(x_t; \tau) \bigg)
- \end{equation}
-The paper shows good results on many deep learning tasks like Image in painting , matrix factorization etc. \\ A major problem with evaluation schemes seems to be that the evaluation is based on speed up vs the number of epochs rather than speed up vs time, since finding the value of $\tau$ itself is computationally intensive process the speed vs time makes more sense.
+\end{equation}
+here $x_t \sim h(x_t; \tau)$.
 
-\section{Adaptive Sampling for SGD by Exploiting Side Information\cite{gopal2016adaptive}}
+The paper is very innovative using SGD for solving the variance reduction problem in SGD. The paper is able to show decent results on many deep learning tasks like Image in painting , matrix factorization etc. \\ The paper suffers from a major drawback of solving another optimisation problem which requires both time and itself suffers from high variance, making the usability of the method limited. 
+\section{Importance Sampling using Extra Information}
 
-This works tries to find an the distribution q(x) using additional information from the problem which it calls as the side information. This side information can be anything like labels etc. The papers uses this latent information for maintaining probability distribution over the bins constructed using the side information. The optimal sampling distribution corresponds to sampling more instances from those bins which have larger gradients.  First the samples are distributed into binds according to their side information, $C_k$ denotes set of all training instances which have the side information set k. The papers proposes the following update rule 
+Another important recent work which has gained popularity is Adaptive Sampling for SGD by Exploiting Side Information\cite{gopal2016adaptive}. This work finds the distribution q(x) using additional information from the problem which it calls as side information. This side information can be anything like labels etc, is used to create bins and assign each data point to a its respective bin based on upon the side information of the data points. The paper proposes the following update rule 
 \begin{equation}
 \theta_{t+1} = \theta_{t} - \frac{1}{N} \frac{1}{P(i)}\nabla f(i; \theta_{t}) \\ 
 \end{equation}
-Where  $P(i) = \frac{p_k}{C_k}$ , this can be though of as a step process where you firstly sample the cluster uniformly at random and the sample from the cluster according to the distribution $p_k$. The paper shows that given this side information we can solve an optimization problem  for the maximum reduction in variance which gives the optimal distribution $p_k$ as ,
+Where  $P(i) = \frac{p_k}{C_k}$ , this sampling scheme can be thought of as a two step process of the uniform sampling scheme, first sample any bin uniformly  $C_k$ at random and then sample from the bin according to the distribution $p_k$ which is the probability of selecting a data point inside bin k. If $p_k$ is equal to $C_k$ the above reduces to uniform sampling. Instead of keeping $p_k$ static the paper proposes a way of finding the optimal distibribution. The optimal distribution $p_k$ is found using the solution of the variance reduction problem for SGD@. The optimal distribution $p_k$ is expressed as follows, 
 \begin{equation} \label{gopal}
 p_k \propto \frac{|C_k|}{N} \sqrt[]{\frac{1}{|C|_k} \sum_{i \in C_k } || \nabla f(i; \theta_t} || ^2
 \end{equation}
-$p_k$ denotes the probability of selecting a data point inside cluster/bin k. We can easily see that sampling scheme is unbiased.\\
-The paper uses a simple idea of first sampling a bin and then selecting a data point using Eq \ref{gopal} for selecting a point from the bin. This is a very simple idea and achieves great results on tasks of Logistic Regression but doesn't explore the idea to deep learning settings  as the  computation time for calculating the gradient is quite large. Also paper is not very clear about what other side information can be used other than labels.
+Intuitively, we select data points from bins that have a larger gradient. \\
+This is a simple idea achieves great results on tasks of Logistic Regression but the method does not scale well to the larger datasets because of the need for calculating the gradient for finding $p_k$. Also it is not always possible to define side information for each and every dataset and problem.  
 
 \chapter{Diversity based sampling}
+
+As stated earlier while creating minibatches we should not only take into account the individual contribution of the samples towards variance reduction but also how the whole group
 
 \section{Determinantal Point Processes for Mini-Batch Diversification\cite{zhangdiversified}}
 The paper argues that creation minibatches that are diverse enough to be representative of the full dataset result in a variance reduction for SGD. Diversity of minibatch can be defined as the dissimilarity between data points of the minibatch in some metric space. Diversity serves a important purpose when sampling from the highly imbalanced datasets since it samples from less represented classes. \\
@@ -859,7 +864,7 @@ P_{L} ^ K (Y) = \frac{\text{det}(\mathbf{L}_Y )} { \sum_{|Y'| =k }\text{det}(\ma
 
 \chapter{Active Bias Sampling}
 
-Active Bias sampling means to sample data having bias for a particular criteria. The criteria can be anything from Magnitude of Loss, Gradient or Lipschitz Constant. There are various methods in the literature on these topics[\cite{katharopoulos2017biased} \cite{katharopoulos2018not} \cite{zhao2015stochastic} \cite{chang2017active}.
+Active Bias sampling means to sample data having bias for a particular criteria. The criteria can be anything from magnitude of loss, gradient or lipschitz constant. There are various methods in the literature on these topics \cite{katharopoulos2017biased} \cite{katharopoulos2018not} \cite{zhao2015stochastic} \cite{chang2017active}.
 
 \section{Variance Reduction in SGD}
 We can rewrite the SGD update rule  defined in Eq \ref{SGD} for importance sampling as follows ,
@@ -1405,157 +1410,6 @@ Although our algorithm works comparable to random sampling on many datasets such
 \item Use of distributed submodular maximization algorithms. These algorithms are really fast and provable bounds for accuracy of the results.
 \end{itemize}
 One area which is still left unexplored is the usage of our algorithm in the setting Natural Language Processing and Mutli task training. This is really interesting since submodular functions have extensively used in both these areas. A diverse batch would really be useful in the case of multi task learning as the batch would now be contain information of all tasks.
-
-
-\iffalse
-\section{Front matter}
-iiththesis is a class file that defines the structure of the thesis. In order to use the file you have to define the
-document class as follows
-\begin{verbatim}
-\documentclass{iiththesis}
-\end{verbatim}
-The student need not to worry about the structure of the front matter. The class file takes the following information to generate the front matter
-\begin{itemize}
-\item Title
-\item Degree
-\item Book
-\item Department
-\item Submission date
-\item Author
-\item Chairman (optional)
-\item External examiner (optional)
-\item Internal examiner  (optional)
-\item Adviser
-\item Co-adviser (optional)
-\item Acknowledgment (optional)
-\item Dedication (optional)
-
-\end{itemize}
-
-\subsection{Title}
-$ \backslash $title\{tile of the thesis\} will generate the tile of your thesis.
-
-\subsection{Degree}
-Use $ \backslash $degree\{Master of Technology\} to input your degree.
-
-\subsection{Book}
-Use $ \backslash $book\{\} to input nature of report. For PhD ``Dissertation" is recommended and
-for M.Tech ``Thesis" is recommended.
-
-\subsection{Department}
-Use $ \backslash $department\{Your department\} to input your department name.
-
-\subsection{Submission date}
-Use $ \backslash $submitted\{June 2011\} to input date of submission.
-
-
-\subsection{Author}
-Use $ \backslash $author\{Student name\} to input the author name.
-
-\subsection{Committee members}
-The committee members consists of chairman, adviser, and examiners.  Use the following commands to include the committee members
-\begin{itemize}
-\item $ \backslash $adviser\{Your adviser\}
-\item $ \backslash $chair\{Committee chairman\}
-\item $ \backslash $external\{External examiner \}
-\item $ \backslash $internal\{Internal examiner \}
-\item $ \backslash $coguide\{Co-Adviser\}
-
-\end{itemize}
-
-The affiliation of each examiner can be provided using the following environments
-\begin{itemize}
-\item $ \backslash $addradviser\{Address line 1 $ \backslash \backslash $ Address line 2\}
-\item $ \backslash $addrchair\{Address line 1 $ \backslash \backslash $ Address line 2\}
-\item $ \backslash $addrexternal\{Address line 1 $ \backslash \backslash $ Address line 2 \}
-\item $ \backslash $addrinternal\{Address line 1 $ \backslash \backslash $ Address line 2 \}
-\item $ \backslash $addrcoguide\{Address line 1 $ \backslash \backslash $ Address line 2\}
-
-\end{itemize}
-
-
-\subsection{Acknowledgments}
-This is optional. Use the acknowledgment environment $ \backslash $acknowledgments\{\}   to create the acknowledgement.
-You may write your acknowledgment in an external file, and that can be incorporated into the main tex file using the $ \backslash $input\{filename\}.
-
-
-\subsection{Dedication}
-This is optional. Use the dedication environment $ \backslash $dedication\{\}   to create the acknowledgement.
-You may write your dedication in an external file, and that can be incorporated into the main tex file using the $ \backslash $input\{filename\}.
-
-\section{Where to put the above environments}
-All the above mentioned environments must be defined before starting the document. i.e. before the environment
-
-\chapter{Citation}
-\section{Single citation}
-The cite command can be used to create any reference~\cite{Achenbach1995}. i.e. 
-\begin{verbatim}
-\cite{bibtex_key}
-\end{verbatim}
-
-
-\section{Multiple citation}
-You can also cite multiple references using the cite option~\cite{Achenbach1995,Aguiar2004}.. i.e
-\begin{verbatim}
-\cite{bibtex_key1, bibtex_key2}
-\end{verbatim}
-
-Books and Thesis may be cited in the same way~\cite{Bard2001,Iordanidis2002}. The student need not to worry about difference in citation style for journal article, conference, books, thesis etc. This is taken care by bibliography style-file iiththesis.bbl. You are strongly recommended to use $ \backslash $ bibliography{•} rather than individual bibtex entries. By using $ \backslash $bibliography{•} you will never have references which are not cited in the text. You can use any reference manager to create your collection of bibliography.bib. For instance JabRef and Mendeley are reference managers which are freely available.
-
-\chapter{Figures}
-\section{Referencing figures}
-The figure where ever possible must be centered. Each figure must have a caption centered to the figure. Every single figure in the document must be referred in the text. For example IITH logo is displayed in Fig.~\ref{iithlogo}.
-
-\begin{figure}[h]
-\centering
-\includegraphics[scale=0.5]{logo}
-\caption{This is IITH logo}
-\label{iithlogo}
-\end{figure}
-
-Use ``Fig". to refer to a figure if the reference to it appears not at the beginning of a sentence. If the sentence starts with reference to figure use ``Figure". For instance refer to the following text.
-Figure~\ref{iithlogo} is a compressed logo of IITH.\\
-
-\section{File formats}
-You can use jpeg, png, pdf, or eps file format for the figures. However, depending on the file type you will have to use either \textit{pdflatex} or \textit{latex}. Please refer to Chp.~\ref{compiling} for further details.
-
-
-\chapter{Tables}
-
-\section{Referencing tables}
-The tables where ever possible must be centered. The table caption must appear at the top of the table and must be centered to the table. Every table in the document must be referred in the text. Please use capitalized ``T" whenever a reference to table is made. i.e Table~\ref{extable} rather than table~\ref{extable}.
-\begin{table}[h]
-\centering
-\caption{This is an example table.}
-\begin{tabular}{l l}
-\hline
-Parameter & Value \\
-\hline
-Density & 1 \\
-Specific heat & 1 \\
-\hline
-\end{tabular}
-\label{extable}
-\end{table}
-
-\chapter{Compiling the \textit{.tex} file }
-\label{compiling}
-
-\section{Options}
-If you are using jpeg or pdf format for the figures please use\textit{pdflatex} to compile the tex file. If you are using eps format you can use \textit{latex} command to compile the tex file. The \textit{latex} command will create \textit{dvi} output which may be converted to \textit{pdf} by using \textit{dvipdf} on any linux distribution. 
-
-\section{Compilation sequence}
-You have to execute the following sequence to commands to get the proper output file.
-\begin{verbatim}
-latex thesis.tex
-bibtex thesis
-latex thesis.tex
-latex thesis.tex
-\end{verbatim}
-Notice that you have to tex the document twice after running bibtex.\\
-
-
-\fi
 \clearpage
 \newpage
 \addcontentsline{toc}{chapter}{References} % Please do not remove this
