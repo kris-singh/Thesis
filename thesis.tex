@@ -862,10 +862,10 @@ P_{L} ^ K (Y) = \frac{\text{det}(\mathbf{L}_Y )} { \sum_{|Y'| =k }\text{det}(\ma
 
 \subsection{Active Bias Sampling}
 
-Active Bias sampling means to sample data having bias for a particular criteria. The criteria can be anything from magnitude of loss, gradient or lipschitz constant. There are various methods in the literature on these topics \cite{katharopoulos2017biased} \cite{katharopoulos2018not} \cite{zhao2015stochastic} \cite{chang2017active}.
+In active bias sampling techniques we bias our probability distribution based on a particular criteria. The criteria can be anything from magnitude of loss \cite{katharopoulos2017biased}, gradient \cite{katharopoulos2018not}, lipschitz constant \cite{zhao2015stochastic} and variance of the samples \cite{chang2017active}. 
 
-\subsection{Variance Reduction in SGD}
-We can rewrite the SGD update rule  defined in Eq \ref{SGD} for importance sampling as follows ,
+\subsection{Variance Reduction in SGD using Importance Sampling}
+Until now we have not formally shown how a importance sampling methods can reduce variance. We now give a proof sketch to show importance sampling methods help in reducing variance SGD. We can rewrite the SGD update rule  defined in Eq \ref{SGD} for importance sampling as follows ,
 \begin{equation}
 \theta_{t+1} = \theta_{t} - \eta w_{I_t} f(x_{I_t}; \theta_t)
 \end{equation}
@@ -879,7 +879,7 @@ Also if we take $w_{I_t} = \frac{1}{N p_{I_t}}$ , taking the expectation of the 
 \begin{equation}
 E( w_{I_t} \nabla f(x_{I_t}; \theta_t)) = \frac{1}{N} \sum_{i=1}^N \nabla_{\theta_t}  f(x_{i_t}; \theta_t)
 \end{equation}
-Define $G_{I_t} = w_{I+t} \nabla f(x_{I_t}; \theta_t)$ using Eq\ref{chapter 8 eq1}
+Define $G_{I_t} = w_{I+t} \nabla f(x_{I_t}; \theta_t)$ using Eq \ref{chapter 8 eq1}
 \begin{align}
 S &= - \mathbb{E}_{P}[ || \theta_{t+1} - \theta^* || ^2 - || \theta_{t} - \theta^* || ^2 ] \\
 &= - \mathbb{E}_{P} [\theta_{t+1}^T \theta_{t+1} - 2 \theta_{t+1} \theta^* - \theta_{t}^T\theta_{t} + 2 \theta_{t}^T \theta^* \\
@@ -889,11 +889,11 @@ S &= - \mathbb{E}_{P}[ || \theta_{t+1} - \theta^* || ^2 - || \theta_{t} - \theta
 \end{align}
 
 The proof is taken from \cite{katharopoulos2018not}. We can see that we can increase the convergence speed / reduce the variance of SGD if we find a optimal distribution that  minimizes $ Tr(V_{p_t}[G_{I_t}])$.
-\cite{zhao2015stochastic} in their seminal work show that 
+\cite{zhao2015stochastic} in their seminal work show that the optimal distribution for the above solution is  
 \begin{equation}
 p_t = \frac{G_{I_t}} {\sum_{I=1}^N G_{I_t}}
 \end{equation}
-As we can see this computation very inefficient as we need to calculate the full gradient over the dataset for each time step t. Another solution is to find a solution to 
+It can be seen that the above distribution is computation very inefficient as it requires full gradient over the dataset for each time step t. A work around is approximate the $G_{I_t}$ by another quantity which is easier to compute as follows, 
 \begin{align}
 \text{min} &Tr(V_{p_t}[G_{I_t}]) \iff \text{min} Tr(V_{p_t} [H_{I}])\\
 & H_I \geq G_{I_t}  \forall t
@@ -903,10 +903,10 @@ Then the optimal distribution is given by
 p_t = \frac{H_{I}} {\sum_{I=1}^N H_{I}}
 \end{equation}
 One proposed H is to use the Lipschitz constant of the Loss Functions f, since $G_{I_t} \leq L_I \forall {t}$.
-\cite{loshchilov2015online} and \cite{katharopoulos2017biased} show that using Loss based sampling performs really well. The test their implementation on many deep learning task for image classification and show good results. \\
-The caveat in choosing the probability distribution this way is the trade off between calculation of probability values for the data points and variance reduction. \cite{katharopoulos2018not} show that the 
-always choosing points using the importance sampling distribution leads to a worse performance, they suggest to use a $\epsilon$ greedy strategy instead. \\Choosing data points using a random distribution  in $\epsilon$ number of epochs and using importance sampling to select data points in $1-\epsilon$ number of epochs. The suggest using the following update rule for epsilon.
-\begin{equation}\label{Fixed Eps}
+In practice even using loss based sampling \cite{loshchilov2015online} and \cite{katharopoulos2017biased} performs really well. They test their implementation on many deep learning task for image classification and show good results. \\
+All sampling based methods suffer from a slow speeds as they require the calculation of the probability distribution to sample the data points from. Also always choosing the data points using the most optimal distribution can lead to a decrease in performance in practice \cite{katharopoulos2018not}. This tradeoff between variance reduction and finding a probability distribution can be overcome if we use epsilon greedy strategy. Choosing data points using a random distribution in $\epsilon$ number of epochs and using importance sampling to select data points in $1-\epsilon$ number of epochs. The suggest using the following update rule for epsilon.
+
+\\\begin{equation}\label{Fixed Eps}
 \epsilon  = \epsilon * a + (1-a) * \left(1 - \frac{1}{\sum_{i=1}^N g_{i}^2} \left | \left | g - \frac{1}{|U|} \right| \right|^2 \right)^\frac{-1}{2}
 \end{equation}
 where $a  < 1 $ denotes the annealing term, g denotes the score vector for each data point assigned by the importance sampling distribution and U denotes the uniform sampling probability for the data point. They show that this really improves the performance of importance sampling schemes on large datasets that prevalent in Deep Learning. We also use this strategy in our experiments.
