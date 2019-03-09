@@ -456,7 +456,7 @@ corr(f(x), h(x)) > \frac{1}{2}
 \end{equation}
 $corr$ denotes the correlation between $f(x)$ and $h(x)$ 
 
-Finding such a $h(x)$ is not trivial and sometimes not possible for many problems. We now look at the most popular variance reduction technique in literature. 
+Finding such a $h(x)$ is not trivial and sometimes not possible for many problems. We now look at the most popular variance reduction technique in literature Importance Sampling. 
 
 \section{Importance Sampling }
 Importance sampling attempts to reduce the variance of the Monte Carlo estimate by changing the distribution from which the actual sampling is carried out.\\ Monte Carlo estimates uses samples generated from the underlying distribution of x (with density p(x)). Suppose that it is possible to find another distribution H(x) with density h(x) with the property that $\frac{f(x)p(x)}{h(x)}$ has a small variance. Then $\theta$ can be expressed as
@@ -495,17 +495,17 @@ We get \ref{36} setting h(x) = $\frac{f(x)p(x)} {c}$ and using c = $\int (f(x)p(
 \ref{c-s} using Cauchy-Schwartz Inequality.
 
 From the above discussion we have shown that the importance sampling methods are easiest to optimize for variance reduction and suffer from no faults like how to distributed the data into strata or how to define control variate.
-This are the major reason we prefer to use importance sampling in our work instead of the other two methods described above.
+These are the major reason we prefer to use importance sampling in our work instead of the other two methods described above.
 
 \chapter{Submodularity and Diversity }
 
-Submodular functions are a very well know and well studied class of functions defined on sets. Submodular functions have a natural diminishing return property which makes them suitable for wide range of problems like Graph Cut, Facility location, Document Summarization etc. \\
-Diversity is an very important topic in the context of Machine Learning. It finds usage in fields of Information Retrieval, Operations research,  Computer Vision. Finding a set of diverse items is a hard and important task and finds application in the filed of Document/ Video Summarization, Facility location problems etc. \\
-In this chapter we first define submodular functions. Then discuss how submodular functions have been used in variance reductions tasks in literature. We then, discuss Submodular function optimisation in large datasets. We finally, show the relationship between submodular functions and diversity through an example.
+Submodular functions are a well know and widely studied class of functions defined on sets. Diversity is an very important topic in the context of Machine Learning. Finding a set of diverse items is a hard and important task and finds application in the filed of Document/ Video Summarization, Facility location problems etc. Submodular functions have a natural diminishing return property which makes them suitable for modeling diversity. Submodular function have used in wide variety of problems like Graph Cut, Facility location, Document Summarization etc. \\
+In this chapter we first define submodular functions. Then discuss how submodular functions have been used in variance reductions tasks in existing literature. Optimization of submodular functions is discussed later for the case of large datasets. Finally, the relationship between submodular functions and diversity through is explained through an example.
+
 
 \section{Submodularity}
 
-Submodularity is a property of a set function that assigns a value to each of the the subsets of the set. ie  $ f: 2^V \rightarrow \mathbb{R}$. We can think of a submodular functions as assigning a utility value to each subset.
+Submodularity is a property of a set function that assigns a value to each of the the subsets of the set. ie  $ f: 2^V \rightarrow \mathbb{R}$. This can be thought of as assigning a utility value to each subset.
 \theoremstyle{definition}
 \begin{definition}{Submodular:}
 For a set function $ f: 2^V \rightarrow \mathbb{R}$ is submodular if for every $ A \subseteq B \subseteq V $ and e $\in$ V $\setminus$ B it holds that 
@@ -517,7 +517,7 @@ Equivalently , a function $ f: 2^V \rightarrow \mathbb{R}$  is submodular if for
 \begin{equation}
 f(A\cap B) + f(A \cup B) \leq f(A) + f(B)
 \end{equation}
-The first definition can be explained as follows, suppose we think of element e as a item that adds some value to the set. Then, the first definition says that when an element e (not present in B) is added to both the sets, the increase in utility for a smaller sized set is more than the increase in utility for larger sized set. This is called the diminishing return property of submodular functions.
+The first definition can intuitively be explained as , the increase in uitility of subsets A and B after adding an element e(not present in B) is greater for the set with smaller size. This is called the diminishing return property of submodular functions.
 \\
 
 \theoremstyle{definition}
@@ -529,7 +529,7 @@ A set function $f:2^V\rightarrow \mathbb{R}$ is monotone if for every $A \subset
 \begin{definition}{Discrete Derivative}
 For a set function $f:2^V\rightarrow \mathbb{R}$, $S \subseteq V$ and $e\in V$, let $\Delta_{f}(e|S):= f(S \cup \{e\}) - f(S)$ be the discrete derivative of f at S with respect to e.
 \end{definition}
-Discrete derivative is also commonly know as marginal gain of f on S with e.
+Discrete derivative is also commonly know as marginal gain of f on S with e. Next we go through some important examples of submodular functions used in practice.
 
 \subsection{Examples}
 
@@ -538,6 +538,17 @@ Discrete derivative is also commonly know as marginal gain of f on S with e.
 \begin{equation}
 f(S) = \sum_{i=1}^m max_{j\in S} M_{i, j}
 \end{equation}
+
+\begin{claim}
+   $f(S)$ is a submodular function.
+\end{claim}
+\begin{proof}
+        We need to show that $\triangle_{f}(e|A) \leq \triangle_{f}(e|b)$ where $A \subseteq B \subseteq V$ for the funtion $f(S)$ to be submodular. Consideer the following cases\\
+        \text{Case I} If $\triangle_{f}(e|B) = 0 then \triangle{f}(e|A) =0$. Hence we have the $\triangle_{f}(e|B) = \traingle{f}(e|A)$\\
+        \text{Case II} If $\triangle_{f}(e|A) \leq 0$ and $\triangle_f(e|B) = 0$ then we have $\triangle_f(e|A) \leq \triangle_{f}(e|B)$\\
+        \text{Case III} If $\triangle_{f}(e}|B) \leq 0$ then $\triangle_{f} (e|A) = \triangle_{f}(e|B)$\\
+        In all the above cases we have $\triangle_{f}(e|A) \leq \triangle_{f}(e|B)$. Hence $f(S)$ is a submodular function.
+\end{proof}
 \item Entropy: Given a joint Probability Distribution P(X) over a discrete-valued random vector $X = {X_1, X_2, ... X_n}$, the function f(S) = H($X_s$) is monotone submodular, where 
 \begin{equation}
 				H(X_s) = - \sum_{x_S} P(x_S) log_2 P(x_S)
@@ -556,11 +567,11 @@ where $H(z|Y ) = H (z|X \cup (Y \setminus X)) \geq H(z|X)$, since conditioning c
 
 
 \subsection{Optimization of Submodular Functions}
-The application of submodular functions in so many areas makes it naturally to study submodular optimization. In our work we are only interested in the maximization of submodular functions. We are interested in solving problems of the form 
+The application of submodular functions in so many areas makes it naturally to study submodular optimization. In our work we are interested in the maximization of submodular functions. Formally,  
 \begin{equation}
 	\text{max}_{S\subseteq V} f(S) \hspace{1.8pt} \text{subject : to constraints on S}
 \end{equation}
-the most basic constraint is called the cardinality constraint which is $ |S| \leq$ k for some k. Even in a the simple example of trying to find the best k places to eat for maximum fun, this problem can be NP-Hard. Though this problem can solved very efficiently using the Greedy algorithm from \cite{nemhauser}
+the most basic constraint is called the cardinality constraint which is $ |S| \leq$ k for some k. Even in a the simple example of trying to find the best k places to eat for maximum fun, this problem is NP-Hard. Though this problem can solved very efficiently using the Greedy algorithm from \cite{nemhauser} if $f(S)$ is submodular. 
 
 \subsection{Greedy Algorithm}
 
@@ -568,12 +579,12 @@ the most basic constraint is called the cardinality constraint which is $ |S| \l
 \caption{(Greedy) Algorithm by \cite{nemhauser}}
 \label{Greedy}
 \begin{algorithmic}[1]
-\Require{A set V, A set function $f : 2^V \rightarrow \mathbb{R}$, Size of subset k.}
-\Ensure{A subset $S_k \subset V$ of size k}
-\State $S_0= \phi$ 
+\Require{Set V, Set function $f : 2^V \rightarrow \mathbb{R}$, Size of subset k.}
+\Ensure{Subset $S_k \subseteq V$ of size k}
+\State $S_0= {\phi}$ 
 \For{$i=0$ to $k$}
 \State $ v_{*} \leftarrow argmax_{v\ in V\setminus S_{i−1}} \Delta (v|S_{i-1})$
-\State $S_i \leftarrow S_{i-1} \cup {v_*}$
+\State $S_i \leftarrow S_{i-1} \cup {{v_*}}$
 \EndFor
 \end{algorithmic}
 
@@ -600,7 +611,7 @@ In particular, for l=k, $f(S_k) \geq (1- 1/e) \space max_{|S|\leq k} f(S)$
  \end{align}
 
 
-The first equation\ref{eq1} follows from Monotonicity of f. The next inequality\ref{eq2} is from the telescoping sum. \ref{eq3} uses Sub modularity . \ref{eq4}  holds because $S_{i+1}$ is built greedily from $S_i$ in order to maximize the marginal benefit $\Delta(v | S_i)$, and \ref{eq5} merely reflects the fact that $|S^∗| \leq k$. Now define $\delta_i := f(S*) - f(S_i)$ we get 
+The first equation \ref{eq1} follows from Monotonicity of f. The next inequality \ref{eq2} is from the telescoping sum. \ref{eq3} uses Sub modularity . \ref{eq4}  holds because $S_{i+1}$ is built greedily from $S_i$ in order to maximize the marginal benefit $\Delta(v | S_i)$, and \ref{eq5} merely reflects the fact that $|S^∗| \leq k$. Now define $\delta_i := f(S^*) - f(S_i)$ we get 
 \begin{equation}
 	\delta_{i+1} \leq (1 - \frac{1}{k}) \delta_i
 \end{equation}
@@ -611,14 +622,12 @@ Hence, $\delta_l \leq (1 - \frac{1}{k}) ^ l \delta_0$. Next, $\delta_0 = f(S^*) 
 Rearranging we get $f(S_l) \geq (1 - e^{-l/k})f(S^*)$
 \end{proof}
 
-Thought the Greedy Algorithm\ref{Greedy} is pretty simple to implement it suffers from a major flaw that it is very slow. In the era of Big-Data the Greedy algorithm would take 0(n*k) function evaluations. \\
-
-Even the the  LAZY-GREEDY algorithm by \cite{minoux1978accelerated} which cleverly uses submodularity and keeps the elements  sorted in decreasing order based upon the marginal gain. In each iteration i, the LAZY-GREEDY algorithm evaluates the element on top of the list, say e, and updates its upper bound,
-$\rho(e) \leftarrow \Delta(e|S_{i -1})$. If after the update $\rho$(e) $\geq$ $\rho$(e') for all e' $\neq$ e, submodularity guarantees that e is the element with the largest marginal gain. This leads to a lot less number of function evaluations but, when the size of k is large the  LAZY-GREEDY algorithm is known to perform poorly.
+Though the Greedy Algorithm\ref{Greedy} is pretty simple to implement it suffers from a major flaw that it does not scale well for large datasets. In particular the run time for the Greedy Algorithm is $0(n*k)$ function evaluations which is prohibitively expensive even for moderate size n(number of data points).\\
+To decrease the number of function evaluation the LAZY-GREEDY algorithm by \cite{minoux1978accelerated} is proposed. The LAZY-GREEDY algorithm cleverly makes use of submodularity to reduce the running time by keeping the elements in a sorted decreasing order based upon the marginal gains, at each iteration i, it evaluates the element on top of the list, say e, and updates its upper bound, $\rho(e) \leftarrow \Delta(e|S_{i -1})$. If after the update $\rho$(e) $\geq$ $\rho$(e') for all e' $\neq$ e, submodularity guarantees that e is the element with the largest marginal gain. The worst case bounds for LAZY-GREEDY algorithm are similar to the Greedy algorithm but in practice it boost the the speed up by order of magnitudes. Still for a large k(cardinality constrain) and repeated selection of points the LAZY-GREEDY algorithm is still slow and impractical to be applied.
 
 \subsection{STOCHASTIC-GREEDY} \label{lazier}
 
-STOCHASTIC-GREEDY \cite{mirzasoleiman2015lazier} algorithm tries to improve upon the LAZY-GREEDY algorithm using a very simple insight of sub sampling the dataset before using the Lazy Greedy or GREEDY algorithms. It is in a sense equivalent to stochastic gradient descent which improves the running time of gradient descent for convex optimization using a sub sampling step.
+STOCHASTIC-GREEDY \cite{mirzasoleiman2015lazier} algorithm tries to improve upon the LAZY-GREEDY algorithm using a very simple insight of sub sampling the dataset before using the LAZY GREEDY or GREEDY algorithm. It is in a sense equivalent to stochastic gradient descent which improves the running time of gradient descent for convex optimization using a sub sampling step.
 \
 \begin{algorithm}
 \caption{STOCHASTIC GREEDY Algorithm by \cite{mirzasoleiman2015lazier}}
@@ -626,28 +635,24 @@ STOCHASTIC-GREEDY \cite{mirzasoleiman2015lazier} algorithm tries to improve upon
 \begin{algorithmic}[1]
 \Require{set V, set function $f : 2^V \rightarrow \mathbb{R}$, Size of subset k.}
 \Ensure{subset $S_k \subseteq V$ of size k}
-\State $S_0= \phi$ 
+\State $S_0= {\phi}$ 
 \For{$i=0$ to $k$}
 \State R $\leftarrow$ a random subset of size $\frac{n}{k\log(\frac{1}{\epsilon})}$, obtained by sampling from $V \setminus S_{i-1}$.
 \State $ v_{*} \leftarrow \text{argmax}\space \space \Delta_{v\in R}(v| S_{i-1})$
-\State $S_i \leftarrow S_{i-1} \cup {v_*}$
+\State $S_i \leftarrow S_{i-1} \cup {{v_*}}$
 \EndFor
 \end{algorithmic}
 \end{algorithm}
 
-STOCHASTIC-GREEDY algorithm is the  first linear-time algorithm for maximizing a non-negative monotone submodular function subject to a cardinality constraint k. STOCHASTIC-GREEDY achieves a (1 - 1/e - $\epsilon$) approximation guarantee to the optimum solution with running time O(n log(1/$\epsilon$)). \\
-\theoremstyle{claim} 
-\begin{claim}
-For achieving a approximation ratio of (1 - 1/e -$ \epsilon$) you require $R \geq n/k log(1/\epsilon)$
-\end{claim}
-There have been other recent works \cite{tschiatschek2018differentiable} that show that rather than taking the max element we could also select the elements according to the probability $\propto$ marginal gain of the elements. 
+STOCHASTIC-GREEDY algorithm is the  first linear-time algorithm for maximizing a non-negative monotone submodular function subject to a cardinality constraint k. STOCHASTIC-GREEDY achieves a (1 - 1/e - $\epsilon$) approximation guarantee to the optimum solution with running time O(n log(1/$\epsilon$)). Achieving a approximation ratio of (1 - 1/e -$ \epsilon$) requires $R \geq n/k log(1/\epsilon)$ for further details the readers is implored to read \cite{mirzasoleiman2015lazier}\\
+There have been other recent works \cite{tschiatschek2018differentiable} that show that rather than taking the max element we could also select the elements according to the probability conditioned on the marginal gain of the elements. 
 
 
 \section{Variance Reduction and Submodularity }
 
-Variance reduction and Submodularity look pretty unrelateded at start but as we show below for certain problems we can cast the variance reduction problem as a submodular maximization problem.
+Variance reduction and Submodularity look pretty unrelateded at start but as shown below for certain problems we can cast the variance reduction problem as a submodular maximization problem.
 \\
-Let us consider the case of where we have a finite number of locations V and we can place a sensor at each location, and model a joint distribution $P(X_V)$  over random variables $X_V$ associated with these locations. We want to select a subset of location A $\subseteq$ V to observe, such that the average predictive variance, 
+Let us consider the case where we have a finite number of locations V and we can place a sensor at each location to observe a associated quantity with these locations given by $X_v$, the joint probability of the observations is given by $P(X_v)$. We want to reduce the cost of placing the sensors choosing only a subset of locations A $\subseteq$ V to observe, the locations A have to selected such that the average predictive variance, 
 \begin{equation}
 	V(A) = \frac{1}{n} \sum_{i} \sigma_{i|A}^2
 \end{equation}
@@ -659,44 +664,45 @@ We need to solve the following optimization problem for getting the minimum aver
 \begin{equation}\label{optimsation}
 A^* = argmin_{|A| \leq k} V(A)
 \end{equation}
-As we can clearly see that \ref{optimsation} problem has a combinatorial search space which makes the problem hard to solve. It can be show that the problem is NP-hard in general \cite{das2008algorithms}. Fortunately \cite{das2008algorithms} show that the variance reduction 
+As can be seen clearly that \ref{optimsation} problem has a combinatorial search space which makes the problem hard to solve. It can be show that the problem is NP-hard in general \cite{das2008algorithms}. Fortunately \cite{das2008algorithms} show that the variance reduction 
 \begin{equation}
 F_s(A) = \sigma_s^2 - \sigma_s|A ^2
 \end{equation}
-at any particular location s, satisfies the following diminishing returns behavior: Adding a new observation reduces the variance at s more, if we have made few observations so far, and less, if we have already made many observations. Since each of $F_S(A)$ is submodular, the average variance reduction is also submodular 
+at any particular location s, satisfies the following diminishing returns behavior: Adding a new observation reduces the variance at s more, if we have made few observations so far, and less, if we have already made many observations. Since now we can say that each of $F_S(A)$ is submodular, the average variance reduction is also submodular 
 \begin{equation}
 	F(A) = V(\phi) - V(A) = \frac{1}{n} \sum_{s} F_s(A)
 \end{equation}
-The average variance reduction is also monotonic, that is, for all A $\subseteq$ B $\subseteq$ V it
+It can also be shown that the average variance reduction is monotonic ie for all A $\subseteq$ B $\subseteq$ V it
 holds that F(A) $\leq$ F(B), and normalized F($\phi$) = 0. \\
 Hence the problem of minimizing the average variance is an instance of the problem 
 \begin{equation}
 max_{A\subset V}F(A) , \text{subject to} |A| \leq K, 
 \end{equation}
-since F is monotonic, normalized, submodular we can use of the above mentioned optimization methods. \\
+since F is monotonic, normalized, submodular we can use the above mentioned optimization methods to solve the problem easily. \\
 A particular case of the above example is seen in the case of GeoStatistics in Kriging variance reduction minimisation problem and also in the Gaussian Process predictive variance reduction problem. \\
 
 \section{Diversity and Submodularity}
 
-Diversity of a set can be defined as the measure of difference between the elements of the dataset.  Diversity is a very important concept in area of Machine learning particularly in area of Result Diversification. A recommender's output should diverse enough to capture the preferences of the user but not to diverse so that user preferences are orthogonal to the recommended items. Diversity is also an important requirement in the task of summarization of videos and dataset. \\
-If we look at the problem of adding a subset V of size of k to already sampled set S* of size m such that we get the maximum diversity. We can cast the problem as the following optimization problem
+Diversity of a set can be defined as the measure of difference between the elements of the dataset.  Diversity is a very important concept in area of Machine learning particularly in area of Result Diversification. A recommender's output should be diverse enough to capture the preferences of the user but not too diverse so that user preferences are orthogonal to the recommended items. Diversity is also an important requirement in the task of summarization of videos and text data. \\
+The problem of adding a subset V (of size of k) to a already sampled set $S^*$ (of size m), such that we get the maximum diversity can be cast as the following optimization problem
+
 \begin{equation}\label{diversitynphard}
 \text{argmax}_{V \in S\setminus S*, |V|\leq k}\space f(V\cup S^*) - f(S^*)
 \end{equation}
-Where f is a set function from $f:2^S \rightarrow \mathbb{R}$ that denotes the value of diversity of the set. It can be shown that problem is NP-hard in general and candidate solution set is very large. But if the f is submodular we can solve the above problem as Submodular Optimization problem really quickly. Submodular function are good candidates for modeling diversity in any problem due to the diminishing returns property.\\
+Where $f$ is a set function from $f:2^S \rightarrow \mathbb{R}$ that denotes the value of diversity of the set. It can be shown that problem is NP-hard in general and candidate solution space is very large. But if $f$ is submodular the problem can be solved as a Submodular Optimization problem which as seen earlier is a much easier problem to solve. From this we see that Submodular function are good candidates for modeling diversity in any problem this can be attributed to their diminishing return property.\\
 
-We now show a example\cite{tschiatschek2016learning} of how a submodular function can model diversity easily. 
-Let f be a set function, $f : 2^S \rightarrow \mathbb{R}$ of the following form 
+We now show a example\cite{tschiatschek2016learning} of how a submodular function can model diversity. 
+Let $f$ be a set function, $f : 2^S \rightarrow \mathbb{R}$ of the following form 
 \begin{equation}\label{Diversity2}
 	f(S) = \sum_{i\in S} u_i + \sum_{d=1}^L (\text{max}_{i\in S} \space w_{i, d} - \sum_{i \in S} w_{i, d} )
 \end{equation}
 
 Here $u_i$ indicates a modular functions which denotes the quality of the element i.
-this term only captures frequencies of the individual items, ignoring any dependencies. To this end, we will assign to each item i an L-dimensional vector $w_i \in R^L_{ \geq 0} $. The intuition is that each of these L dimensions will capture
-some concept  and we interpret $w_{i,d}$ as a quantification of how relevant that
-item i is for that specific concept d. To quantify the diversity of some items S $\subseteq$ V with respect to dimension d, we propose the term $\text{max}\space w_{i, d} - \sum_{i \in S} w_{i, d}$ . This
-term is a non positive penalty, evaluating to 0 iff S contains at most one item i with positive value $w_{i,d} \geq 0$.  \\
-We now prove that the f(S) is indeed Submodular.
+this term only captures frequencies of the individual items, ignoring any inter dependencies between the items. For countering this, the paper assigns to each item i an L-dimensional vector $w_i \in R^L_{ \geq 0} $. The intuition behind this is that each of these L dimensions will capture
+some concept and can be interpret $w_{i,d}$ as a quantification of how relevant that
+item i is for that specific concept d. To quantify the diversity of some items S $\subseteq$ V with respect to dimension d, the paper propose the term $\text{max}\space w_{i, d} - \sum_{i \in S} w_{i, d}$ . This
+term is a non positive penalty, evaluating to 0 iff S contains at most one item i with positive value $w_{i,d} \geq 0$. Up until now we have shown a function that can model diversity, we now proved that the obtained function is submodular.  \\
+
 \theoremstyle{claim} 
 \begin{claim}
 f(s) is a submodular function
@@ -721,15 +727,17 @@ Hence the above function is indeed submodular.
 
 \subsection{Probabilistic Submodular Functions}
 \begin{definition}Probabilistic Submodular Functions: 
-Is a probability distribution over $A \subseteq V$  of the form P(A) = $\frac{\pm exp(F(A)}{\mathcal{Z}}$. Where F(A) is a submodular function on V.
+are probability distribution over $A \subseteq V$  of the form P(A) = $\frac{\pm exp(F(A)}{\mathcal{Z}}$. Where F(A) is a submodular function on V.
 \end{definition}
 
   The normalizing quantity $\mathcal{Z} = P_{S\subseteq V} (exp \pm  F(S))$ is called the partition function, and − $\log \mathcal{Z}$ is also known as free energy in the statistical physics literature. 
-A probabilistic way of modeling diversity is through use of Ising Models and Detrimental Point Processes. \ref{dpp_eq}\\
+A probabilistic way of modeling diversity is through use of Ising Models and Detrimental Point Processes as show in \ref{dpp_eq}\\
 We can show that both Ising models and DPP are a special case of Probabilistic Submodular functions. 
-In particular DPP is a distribution over sets A of the form
+In particular DPP is a distribution over set A of the form
 P(A) = $\frac{exp(F(A))}{\mathcal{Z}}$ , where F(A) = $\log |L_Y|$. Here, L $\in \mathbb{R}
-^{N \times N}$ is a positive semi-definite matrix, $L_Y^{'}$ is the square submatrix indexed by $Y^{'}$ and $|   |$ denotes the determinant. Because K is positive semi-definite, F(A) is known to be submodular, and hence DPPs are log-submodular.
+^{N \times N}$ is a positive semi-definite matrix, $L_Y^{'}$ is the square submatrix indexed by $Y^{'}$ and $|   |$ denotes the determinant. Because $L_y^{'}$ is positive semi-definite, F(A) is submodular, and hence DPPs are log-submodular. A major problem is the the complexity of sampling and learning these PSF for the case of large datasets.\\
+
+From the above we have shown how existing methods make use of submodular functions to model diversity and how some existing methods can be categorized as special cases of submodular functions. We also show that diversity is and important metric to consider in many problems and that submodular functions model diversity well. A major problem with using submodular functions is the computation cost, in our work we come up with a novel submodular function which takes minimum amount to compute and also introduce methods to scale submodular optimization to large datasets.
 
 \part{Related Work}\label{related work}
 \chapter{Optimization Based Methods}
