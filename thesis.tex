@@ -922,58 +922,58 @@ where $a  < 1 $ denotes the annealing term, g denotes the score vector for each 
 
 \part{Methodology}
 \chapter{ Submodular Importance Sampling}
-We now present our methodology for submodular importance sampling of mini-batches in SGD. We first introduce the close relationship between diversity and submodularity, then present our methodology for submodular importance sampling in SGD, including a submodular scoring function that works well in practice, and we finally justify how submodular importance sampling leads to variance reduction in SGD.
+We now present our methodology for submodular importance sampling of mini-batches. Firstly a close relationship between diversity and submodularity is established, we then present our methodology for submodular importance sampling, a novel submodular scoring function is introduced that scales well for the needs of modern deep learning systems, and finally it is shown how our submodular importance sampling scheme leads to variance reduction in SGD.
 
-As mentioned earlier, SGD samples data points randomly which can lead to mini-batches which are biased and present an inexact representation of the dataset. This consequently, leads to slower convergence. Diversity-based sampling methods attempt to sample data points, such that the resulting mini-batch is a better representative of the full dataset. A simple example of diversity-based sampling is Stratified Sampling (\cite{zhao2014accelerating}) where data points are selected from strata, proportional to size/population of the strata, thereby leading to a much more balanced minibatches. Submodular functions have been used earlier to model diversity  in subset selection problem (\cite{tschiatschek2016learning}), recommendation systems \cite{ashkan2015optimal} etc. We exploit this inherent submodular nature of diversity measures towards importance sampling in SGD.
+As mentioned earlier, SGD samples data points randomly which can lead to mini-batches which are biased and present an inexact representation of the dataset. This consequently, leads to slow convergence. Diversity-based sampling methods attempt to sample data points such that the resulting mini-batch is a better representative of the full dataset. A simple example of diversity-based sampling is Stratified Sampling (\cite{zhao2014accelerating}) where data points are selected from strata, proportional to size/population of the strata, thereby leading to much more balanced minibatches. Submodular functions have been used earlier to model diversity in subset selection problem (\cite{tschiatschek2016learning}), recommendation systems \cite{ashkan2015optimal} etc. We exploit this submodular nature of diversity measures for the creation of diversified minibatches. 
 
 %We show that our method, \myalgo, reduces variance in SGD based algorithms by creation of diversified mini batches.Section 3.1 discusses about submodular functions methods and how these functions introduce diversity in the the minibatches. Section 3.2 introduces SSGD algorithm, Submodularity of the score function and other We prove how selection of  diverse set of points  leads to reduction of variance. Finally we give a detailed description of our algorithm and show how it belongs in the class of probabilistic submodular functions.
 
 %\subsection{Diversity and Probabilistic Submodular Distributions}
 %Probabilistic Submodular functions can be defined as follows. A probability distribution P(s) defined over subsets over subsets $S \subseteq V$ , where w.l.o.g. V = {1, . . . , N}, is log-submodular if it can be written as $P(S) \propto exp(F(S))$, where $F : 2^V \rightarrow R$ is a submodular set function.
 
-Submodular functions are characterized by the diminishing returns property, i.e.,
+Submodular functions are characterized by the diminishing return property, i.e.,
 \begin{equation}
 F(A \cup {i}) - F(A) \geq F(B \cup {i}) - F(B)
 \end{equation}
-for all $A \subseteq B \subseteq V \setminus i$ and $i \in V$. Intuitively, sub modularity suggests that the marginal gain of adding an item $i$ in the smaller set $A$ is larger than the marginal gain of adding that element in the larger set $B$. Submodular Functions are natural candidates for capturing representativeness(covering) and diversity in a dataset. Formally, choosing a diverse subset from a given set can be modeled as an optimization problem as follows. Let $V = \{1,\cdots,k\}$ be a set of $k$ items. Let $f : 2^V \rightarrow \mathbb{R}^+$ be a diversity function, which maps any subset of $E$ to a non-negative real number. Then problem of selection of maximum diverse set\cite{ashkan2015optimal} turns into 
+for all $A \subseteq B \subseteq V \setminus i$ and $i \in V$. Intuitively, submodularity suggests that the marginal gain of adding an item $i$ in the smaller set $A$ is larger than the marginal gain of adding that element in the larger set $B$. Submodular Functions are natural candidates for capturing representativeness(covering) and diversity in a dataset. Formally, choosing a diverse subset from a given set can be modeled as an optimization problem as follows. Let $V = \{1,\cdots,k\}$ be a set of $k$ items. Let $f : 2^V \rightarrow \mathbb{R}^+$ be a diversity function, which maps any subset of $E$ to a non-negative real number. Then the problem of selection of maximum diverse set\cite{ashkan2015optimal} turns into 
 \begin{equation}
 A_k = \arg\max_{A \in \Theta} \sum_{t=1}^K \Delta_{A_{t-1}}(a_t) \label{Maximisation}
 \end{equation}
 
 
 where $A_k = \{a_1,\cdots,a_k\}$ is a subset of items from $E$, $\Theta$ is the power set of $E$, $A_t = \{a_1,\cdots,a_t\}$ is a set of the first $t$ items in A, 
-and $\Delta_{A_{t-1}}(a_t)$ $=F(A_t) - F(A_{t-1})$ is the gain in diversity after $a_t$ is added to $A_{t-1}$also known as the marginal gain of $a_t$. For a general F, this problem is NP-hard but if $F$ is submodular, the maximization problem (diverse subset selection) can be solved using a greedy approach due to \cite{nemhauser}. 
+and $\Delta_{A_{t-1}}(a_t)$ $=F(A_t) - F(A_{t-1})$ is the gain in diversity after $a_t$ is added to $A_{t-1}$also known as the marginal gain of $a_t$. For any general F, this problem is NP-hard but if $F$ is submodular, the maximization problem (diverse subset selection) can be solved using a greedy approach due to \cite{nemhauser}. 
 
-Motivated by this, we cast the problem of selection of k data point for minibatch diversification as a submodular maximization with cardinality constrained. We now introduce our algorithm called Submodular-SGD(sSGD) \ref{sSGD}.
+Motivated by this, we cast the problem of selection of k data point for minibatch diversification as a submodular maximization with cardinality constrained. We now introduce our algorithm called Greedy Submodular-SGD(GreedySSGD).
 
 %\subsection{SubModular-SGD(s-SGD)}
 \begin{algorithm}
-\caption{SSGD Algorithm}
+\caption{GreedySSGD Algorithm}
 \label{sSGD-1}
 \begin{algorithmic}[1]
 \Require{Training set $X$, Model $M$, minibatch size $k$, $|X|$ = n}
 \Ensure{Selected batch R of size $\frac{n}{k} \log(\frac{1}{\epsilon})$}
-\State $A= \phi$ \Comment \textit{Denotes set of sampled points}
+\State $A= {\phi$} \Comment \textit{Denotes set of sampled points}
 \State  F $\leftarrow$ Submodular Utility function
-\For{j= 0 to t} 
+\For{j= 0 to k} 
 	\State $\mathbf{T}  $ $\leftarrow$ a random subset obtained by sampling $\frac{n}{k} \log(\frac{1}{\epsilon})$ random
 	elements from V $\setminus$ $A_{t-1}$
 	\State argmax $a_j $ $\leftarrow$ $argmax_{a\in \mathbf{T}}$ $\Delta_{A_{t-1}}(a)$
-    \State $A_{t}$ $\leftarrow$ $A_{t -1}$ $\cup$ $a_j$
+    \State $A_{t}$ $\leftarrow$ $A_{t -1}$ $\cup$ ${a_j}$
 \EndFor
 \end{algorithmic}
 \end{algorithm}
 
-The above algorithm is due to \cite{mirzasoleiman2015lazier} called the Lazier than Lazy greedy algorithm. The algorithm selects a set of Random Points $\mathbf{T}$ and then performs greedy optimization for the utility function(F) based on the set of points from $\mathbf{T}$. The size of  $\mathbf{T}$ needs to greater than $\frac{n}{k} \log(\frac{1}{\epsilon}$)  for an approximation guarantee  of $(1 - e^{-1}) - \epsilon$ to the optimal solution. The above algorithm is run for each epochs independently giving a minibatch of size k at each epoch. 
+The above algorithm is due to \cite{mirzasoleiman2015lazier} called the Lazier than Lazy greedy algorithm. This algorithm selects a set of random points $\mathbf{T}$ and performs the greedy optimization for the utility function(F) based on the set of points from $\mathbf{T}$. The size of $\mathbf{T}$ needs to greater than $\frac{n}{k} \log(\frac{1}{\epsilon}$) for an approximation guarantee of $(1 - e^{-1}) - \epsilon$ to the optimal solution. The above algorithm is run for each epochs independently giving a minibatch of size k at each epoch. 
 
-A probabilistic version of the the general greedy algorithm was recently  \cite{tschiatschek2018differentiable} was discussed. The extension of the probabilistic  version to the case of lazier than lazy greedy is trivial since the probabilistic version is equivalent to the greedy algorithm for t=0 see \cite{tschiatschek2018differentiable}. A analysis for approximation guarantee of  for using probabilistic greedy with lazier than lazy greedy is left as a future work.
+A probabilistic version of the the general greedy algorithm was recently  presented in \cite{tschiatschek2018differentiable}. The extension of the probabilistic version to the case of lazier than lazy greedy is trivial since the probabilistic version is equivalent to the greedy algorithm for t=0 see \cite{tschiatschek2018differentiable}. A analysis for approximation guarantee of using probabilistic greedy with lazier than lazy greedy is left as a future work.
 \begin{algorithm}[!htb]
 \caption{Prob SSGD Algorithm}
 \label{sSGD-2}
 \begin{algorithmic}[1]
 \Require{Training set $X$, Model $M$, Minibatch size $k$, n = $|X|$}
 \Ensure{Selected batch R of size $\frac{n}{k}$  log($\frac{1}{\epsilon}$)}
-\State $A= \phi$ \Comment \textit{Denotes set of sampled points}
+\State $A= {\phi$} \Comment \textit{Denotes set of sampled points}
 \State  F $\leftarrow$ Submodular Utility function
 \For{t= 0 to k} 
 	\State $\mathbf{T}  $ $\leftarrow$ a random subset obtained by sampling $\frac{n}{k} \log(\frac{1}{\epsilon})$ random
@@ -983,16 +983,16 @@ A probabilistic version of the the general greedy algorithm was recently  \cite{
     $p_{(a | A_{t-1})} \leftarrow \frac{exp(\frac{1}{\alpha} \Delta_{A_{t-1}}(a)} {\sum_{a' \in T} exp(\frac{1}{\alpha} \Delta_{A_{t-1}}(a))}$ \label{prob eq}
    
 	\State $a^*$ $\leftarrow$ Sample 'a' with probability $p_{a|A_{t-1}}$
-    \State  $A_{t}$ $\leftarrow$ $A_{t-1}$ $\cup$ $a^*$
+    \State  $A_{t}$ $\leftarrow$ $A_{t-1}$ $\cup$ ${a^*}$
 \EndFor
 \State 
 \end{algorithmic}
 \end{algorithm}
 
-The above algorithms selects a k data points based on the above defined probability distribution \ref{prob eq}. The above algorithm is run for each of the n epochs independently. Prob-SSGD algorithm can be thought of as circumventing the exploration-exploitation dilemma while choosing a minibatch. The minibatch created would still be diverse but, now the minibatch may also include data points which would never have been chosen by the Greedy-SSGD algorithm in any of the epochs.
-Till now we have only show that creating a diverse minibatch problem is equivalent to maximizing the \ref{Maximisation}. We have only shown that the maximization problem is easily solved by Greedy-SSGD or ProbGreedy-SSGD if the function F is submodular.
+The above algorithms selects k data points based on the above defined probability distribution~\ref{prob eq}. The above algorithm is run for each of the n epochs independently. Prob-SSGD algorithm can be thought of as circumventing the exploration-exploitation dilemma while choosing a minibatch. The minibatch created would still be diverse but, now the minibatch also includes data points which would never have been chosen by the Greedy-SSGD algorithm in any of the epochs.
+Till now we have only shown that creating a diverse minibatch problem is equivalent to maximizing the~\ref{Maximisation} and that the maximization problem is easily solved by Greedy-SSGD or ProbGreedy-SSGD if the function F is submodular.
 \\ \\
-Now we show how we can create such a function F. From the above we see that good choice for a Submodular Utility function is critical for creation of diverse set. The function  $\mathbb{F}$ besides trying to maximize coverage and diversity should also assigns a high score to data points that the model is uncertain about. Since, these uncertain points are the ones that would make model learn faster. Also the marginal gain for function $ \mathbb{F}$ should be easy to evaluate. This is especially important in the case of Deep Learning Models
+Now we show how we can create such a function F. From the above we see that good choice for a Submodular Utility function is critical for creation of diverse set and scaling of the sampling scheme. The function F besides trying to maximize coverage and diversity should also assigns a high score to data points that the model is uncertain about. Since, these points are the ones that would make model learn faster. Also the marginal gain for function F should be easy to evaluate. This is especially important in the case of Deep Learning Models as these functions need to be evaluated for each minibatch creation.
 
 Based on the above we define the following Utility function.
 \begin{align}
@@ -1014,18 +1014,18 @@ Based on the above we define the following Utility function.
 \begin{equation}
     D(a_i)= min_{a_j\in A:j\neq i}||(a_i,a_j)||_p \label{Minimum Distance}
 \end{equation}
-Here A denotes a set of already sampled data points. Initially $A = {\phi}$. A grows as more and more data points are sampled from the dataset.
+Here A denotes a set of already sampled data points. Initially $A = {\phi}$ and it grows as more and more data points are sampled from the dataset.
 
-Equation \ref{Entropy equation} denotes the Entropy of data point $a_i$ based on the current model parameters at time $w^t$ it quantifies uncertainty of the model on data point $x_i$. A high value of E($a_i$)
-indicates the $a_i$ should be sampled more frequently as it would make the model learn the fastest. In literature this is also called hard-example mining. We have to cautious though because the $a_i$ could also be an outliers making it of no use to the model. Hence we have to balance the exploration exploitation dilemma. 
+Equation~\ref{Entropy equation} denotes the Entropy of data point $a_i$ based on the current model parameters at time t ($w^t$), it quantifies uncertainty of the model on data point $a_i$. A high value of E($a_i$)
+indicates the $a_i$ should be sampled more frequently as it would make the model learn more quickly. In literature this is also called as hard-example mining. Thought we have to cautious because $a_i$ could also be an outlier making making it of less importance. Hence we have to balance the exploration exploitation dilemma. 
 
-Equation \ref{Kernelised Distance} denotes mean kernalized distance of $x_i$ from the batch of data points that constitute A. Mean kernalized distance makes sure we select data points which is less similar to already selected data points A. Hence mean kernelized distance ensures that we select a diverse set of samples at each iteration.
+Equation~\ref{Kernelised Distance} denotes mean kernalized distance of $a_i$ from the batch of data points that presently constitute A. Mean kernalized distance makes sure we select data points which is less similar to already selected data points A. Hence mean kernelized distance ensures that we select a diverse set of samples at each iteration.
 
 Equation \ref{Minimum Distance} avoids selection of duplicate samples in the batch.
 
 \section{Submodularity of Utility function}
 
-We now prove that the above score function is normalized monotonic submodular. \\
+We now prove that the above score function is normalized monotonic and submodular. \\
 \begin{lemma}
 The utility function $\mathbf{F}(a_i | A_{i-1})$ is sub-modular and monotonic.
 \end{lemma}
@@ -1039,7 +1039,7 @@ The gain in utility by addition of a to $A_2$ is given by
 \begin{align}
     \mathbf{F}(A_2 \cup {a}) - \mathbf{F}(A_2)=&\rho(a)+ E(a)+ min_{a_j \in A_2} \phi(a,a_j).
 \end{align}
-    Since $A_1 \subseteq A_2 $ the minimum distance for a point $a_k$ from the other points will always be greater for the set $A_1$ as there may exist some point $a_j$ in the superset $A_2$, which is closer to a than any element in its subset $A_1$.
+Since $A_1 \subseteq A_2 $ the minimum distance for point $'a'$ from any other points will always be greater for the set $A_1$ as there may exist some point $a_j$ in the superset $A_2$, which is closer to $'a'$ than any element in its subset $A_1$.
 \begin{align}
           min_{a_j \in A_1} \phi(a,a_j) \geq min_{a_j \in A_2} \phi(a,a_j).
 \end{align}
@@ -1053,13 +1053,14 @@ The score function is also monotonically non decreasing function. As by addition
 F(A_1 \cup a) \geq F(A_1)
 \end{equation}
 It also normalized as  $F(\phi) = 0$
+Hence we have proven that our utility function is a monotonic submodular function.
 
 
 \section{Unbiased and Variance Reduction}
-Variance reduction using submodular functions has been studied in the context of sensor placement problems \cite{krause2008near}. The motivation of the proof comes from \cite{das2008algorithms}.  Their work shows that the problem of variance reduction can be solved using maximizing the submodular function in many cases in the context of forward linear regression.  \\\\
+Variance reduction using submodular functions has been studied in the context of sensor placement problems \cite{krause2008near}. In their seminal work \cite{das2008algorithms} show that the problem of variance reduction can be solved as a submodular maximization problem for many function in the context of forward linear regression.  \\
 As stated earlier SGD algorithms can introduce a large variance in the gradients calculations which can lead to slow convergence of these algorithms.   We discuss here why the convergence of Greedy-SSGD and ProbGreedy-
 SGD are faster than random SGD. We note some key insights into how Greedy-SSGD and ProbGreedy-SSGD is faster due a decrease of variance in the calculation of the minibatch gradient.
-The proof is inspired from \cite{zhangdiversified} which proves the above results for DPP sampling based solution. \\\\
+The proof is inspired from \cite{zhangdiversified} which proves the above results for DPP sampling. \\\\
 \textbf{Notation} Let $p_i \in \{0, 1\}$ be an indicator random variable indicating if the $i_{th}$ data point was selected according to the ProbGreedy or Greedy SSGD  algorithm. $q_i = \E(p_i)$ denotes the expected value of selection under the sampling scheme.
 
 \begin{prop}
@@ -1116,10 +1117,11 @@ For computing $\E(p_i, p_j)$ we do the following
 \begin{align}
 \text{Var}(\nabla_b) &= (q_i - q_i^2) ||\nabla(x_i, \theta)||  +  \sum_{i \neq j}^N C_{ij} q_i q_j \nabla(x_i, \theta)^T \nabla(x_j, \theta)
 \end{align}
-As we can see for the variance to reduced the product between $C_{ij}$ and $\nabla(x_i, \theta)^T \nabla(x_j, \theta)$ has to negative. We now justify why SSGD reduces variance. For any sampling function such that is diversity inducing we have the following cases: If we assume that the loss function is smooth then \\
-\textbf{Case 1}: $\nabla(x_i, \theta)^T \nabla(x_j, \theta)$ are aligned  we can assume that these points are spatially close to each other since the loss function smooth. If we use a kernel function in ssgd that is euclidean distance, close points would have negative correlation under SSGD sampling scheme making $C_{ij}$ $b_i b_j \nabla(x_i, \theta)^T \nabla(x_j, \theta)$ negative.
+As we can see for the variance to be reduced the product between $C_{ij}$ and $\nabla(x_i, \theta)^T \nabla(x_j, \theta)$ has to negative. We now justify why Greedy-SSGD and ProbGreedy-SSGD reduce variance. For any sampling function that is diversity inducing we have the following cases: If we assume that the loss function is smooth then \\
+\textbf{Case 1}: $\nabla(x_i, \theta)^T \nabla(x_j, \theta)$ are aligned  we can assume that these points are spatially close to each other since the loss function is assumed to be smooth. If we use a kernel function in ssgd that is euclidean distance, close points would have negative correlation under SSGD sampling scheme making $C_{ij}$ $b_i b_j \nabla(x_i, \theta)^T \nabla(x_j, \theta)$ negative.
 \\
-\textbf{Case2}:  $\nabla(x_i, \theta)^T \nabla(x_j, \theta)$ are not aligned  we can assume that these points are far apart since the loss function smooth. If we use a kernel function in ssgd that is euclidean distance, far apart points would have negative correlation under SSGD sampling scheme making $C_{ij} b_i b_j \nabla(x_i, \theta)^T \nabla(x_j, \theta).$
+\textbf{Case2}:  $\nabla(x_i, \theta)^T \nabla(x_j, \theta)$ are not aligned  we can assume that these points are far apart since the loss function is assumed to be smooth. If we use a kernel function in SSGD that is euclidean distance, far apart points would have negative correlation under SSGD sampling scheme making $C_{ij} b_i b_j \nabla(x_i, \theta)^T \nabla(x_j, \theta).$\\
+Both the cases are satisfied in GreedySSGD and ProbGreedy-SSGD proving that the indeed reduce the variance for minibatch SGD.
 
 
 \part{Experiments and Results}
