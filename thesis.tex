@@ -311,15 +311,15 @@ From the above Eq \ref{Variance Red} it can be easily seen that a smaller varian
 
 \chapter{Variance Reduction Techniques}
 
-Variance Reduction\footnote{ The major Source of this chapter is Handbook of Monte Carlo Methods} is an important part of Approximation algorithms like SGD. Variance Reduction techniques help in finding a more precise approximation for quantities  being approximated resulting in turn to better performance of the approximation algorithms. Variance reductions finds its usage in almost all of machine learning for example in MCMC algorithms, Variational Algorithms and SGD all of which can use variance reduction techniques. \\
+Variance Reduction\footnote{The major Source of this chapter is Handbook of Monte Carlo Methods} is an important part of many approximation algorithms like SGD@. These techniques help in finding a more precise approximation quantity of intreset resulting in a better performance models that are being trained using these approximation algorithms. Variance reductions techniques have found usage in a variety of machine learning applications like MCMC algorithms, Policy Gradients and SGD all of which use variance reduction techniques for a better generalisation perfomance of the model being trained. 
 
-In this chapter we discuss about the existing methods of variance reduction in literature. We study all the techniques from the point of view of Monte Carlo Estimation of $E(f(x))$ but all this also readily applies to Stochastic Gradient Algorithms. We give a reference to papers that use these techniques for SGD. \\ \\
+This chapter discusses about the existing methods of variance reduction in literature. We study all the techniques from the point of view of Monte Carlo Estimation of $E(f(x))$ but all this also readily applies to Stochastic Gradient Algorithms. We give references to those papers that use these techniques for SGD and describe in detail in section\ref{related_work}. \\ \\
 In this chapter we, firstly give a brief introduction to Monte Carlo Estimation and then introduce variance reduction techniques such as Stratified Sampling, Control Variates and Importance Sampling
 
 
 \section{Basics}
-To motivate our discussion for importance sampling we take the problem of finding the mean of a function of a Random Variable. \\
-Consider a random variable X having probability mass function or probability density function given by $p_X(x)$ which is greater than zero on a set of values $\mathcal{X}$. Then the expected value of a function f(X)is given by, 
+To motivate our discussion for importance sampling we take the problem of finding the mean of a function of a Random Variable. 
+Consider a random variable X having probability mass function or probability density function denoted by $p_X(x)$ which is greater than zero on a set of values $\mathcal{X}$. Then the expected value of a function f(X)is given by, 
 \begin{equation}
 \E (f(X)) = \sum_{x\in\mathcal{X}} f(x) p_{X}(x)
 \end{equation}
@@ -328,67 +328,64 @@ if X is discrete and,
 \E (f(X)) = \int_{x\in\mathcal{X}} f(x) p_{X}(x) dx
 \end{equation}
 if X is continuous \\
-If we were to take n samples of X's, $(x_1, x_2, ........, x_n)$ and compute the mean of f(x) over the samples, we get what is called as the Monte Carlo Estimate\footnote{\label{Basics} Here we assume the samples are iid.} of $\E (f(X))$\begin{equation}
+If we were to take n samples of $(x_1, x_2, ........, x_n)$ and compute the mean of f(x), we get \footnote{\label{Basics} Here we assume the samples are iid.} of $\E (f(X))$\begin{equation}
 	\widetilde{f}_{n} (X) = \frac{1}{n} \int_{x\in\mathcal{X}} f(x)dx
- \end{equation}
- 
-$\widetilde{f}(X)$ is called the monte carlo estimate of $\E (f(X))$ . If $\E (f(X))$ exist then by weak law of large numbers tells us that for any arbitarily small $\epsilon$
+      \end{equation}
+
+$\widetilde{f}(X)$ is called the monte carlo estimate of $\E (f(X))$ . If $\E (f(X))$ exist then Weak Law of Large Numbers tells us that for any arbitarily small $\epsilon$
 \begin{equation}
 	 \lim_{n\rightarrow \inf} P (|\widetilde{f}(X)  - \E (f(X))| \geq \epsilon)=0.
 \end{equation}
 This simply states that as n increases our approximation get closer to the exact value. \\
-Every stochastic approximation algorithm contains two important  concepts associated with it bias and variance. 
+Every stochastic approximation algorithm contains two important concepts, bias and variance. 
 \begin{itemize}
-\item Bias can be defined as the mean of difference between estimated and exact value of a Random Variable. 
-More formally for the above example bias is defined as follows 
+\item Bias can be defined as the mean of difference between the estimated and the exact value of a Random Variable. 
+More formally for the above example, 
 \begin{equation}
 	Bias(\widetilde{f}(X)) = \E (\widetilde{f}(X) - \E (f(X)))
 \end{equation}
-An unbiased estimator is one whose bias is equal to zero.
+An estimator is called unbiased if its bias is equal to zero.
 \\
-\item Variance can be defined as the measure of dispersion between  estimates from the exact quantity. More formally for the above example 
+\item Variance can be defined as the measure of dispersion between estimates from the exact quantity. For the above example we have 
 \begin{equation}
 	Var (\widetilde{f}(X)) = \E [\{\widetilde{f}(X) - \E (f(X)\}^2]
 \end{equation}
 \end{itemize}
 \newtheorem{lemma}[theorem]{Lemma}
-If we assume the samples are IID. We can show that Monte Carlo Estimates are Unbiased.
+If we assume the samples are IID. We can show that Monte Carlo Estimates are unbiased.
 
 \begin{equation}
-	\E (\tilde{f}(X)) = \E \left(\frac{1}{n} \int_{x\in \mathbb{X}} f(x) dx\right) = \frac{1}{n} \int_{x \in \mathcal{x}} \E (f(x)) dx= \E (f(X)) 
+	\E (\tilde{f}(X)) = \E \left(\frac{1}{n} \int_{x\in \mathcal{X}} f(x) dx\right) = \frac{1}{n} \int_{x \in \mathcal{x}} \E (f(x)) dx= \E (f(X)) 
     \end{equation}
 The variance of Monte Carlo Estimates is given by the following 
 \begin{equation}
 Var(\tilde{f}(X)) = Var\left(\frac{1}{n}\int_{x \in \mathcal{X}} f(x) dx\right) = \frac{Var(f(X))}{n} = \frac{1}{n} \int_{x\in\mathcal{X}} [f(x) - \E (f(X)]^2 p_{X}(x) dx
 \end{equation}
+the variance of the estimator is non zero this could lead to catastrophic results for the subsequent models that uses this quantity. To have a better approximation we need to reduce is the variance this is the goal of variance reduction methods. Below we list and explain some popular methods to achieve variance reduction.
 
-
-A obvious goal for the estimator is to reduce reduce the variance of the estimates. This can be done by the following strategies 
 \begin{itemize}
 \item Stratified Sampling 
 \item Control Variates 
 \item Importance Sampling
 \end{itemize}
 
-We  briefly explain all three strategies.
 \newpage
 \section{Stratified Sampling}
 
-
-Consider again the estimation of  $\theta = E[f(X)] =\int_{X\in\mathcal{X}} f(x) p(x) dx $. For stratified sampling, we first partition the domain of integration $\mathcal{X}$ into m disjoint subsets
-$\mathcal{X}_i$ , i = 1, 2, . . . , m. That is,$ \mathcal{X}_i \cap \mathcal{X}_j = 0$ $ \forall i \neq j$ and $\cup_{i=1}^m \mathcal{X}_i= \mathcal{X}$. Defining 
+Consider estimation of  $\theta = E[f(X)] =\int_{x\in\mathcal{X}} f(x) p(x) dx $. For stratified sampling, we first partition the domain of integration $\mathcal{X}$ into m disjoint subsets
+$\mathcal{X}_i$ , i = 1, 2, . . . , m ie $ \mathcal{X}_i \cap \mathcal{X}_j = 0$ $ \forall i \neq j$ and $\cup_{i=1}^m \mathcal{X}_i= \mathcal{X}$. Defining 
 \begin{align}
 \E (\theta_i) &= \E (f(X) | X\in \mathcal{X}_i)\\
 					&= \int_{\mathcal{X}_i} f(x) p(x) dx
 \end{align}
-for i=1,2 ..... m. Then we can write 
+for i=1,2 ..... m. We can write 
 \begin{equation}
 		\theta = \int_{\mathcal{X}} f(x) p(x) dx = \sum_{i=1}^m \int_{\mathcal{X}_i} f(x) p(x) dx = \sum_{i=1}^m \theta_i
 \end{equation}
 
 
-The motivation behind this method is to be able to sample more from regions of S, that contribute more variability to the estimator of $\theta$, rather than spread the samples evenly across the whole region S. \\
-We now show the mean and variance of estimator when using stratified sampling. 
+The motivation behind this method is to to sample more from regions that have more variability or diverseness, rather than sampling evenly across the whole region S. \\
+We now derive the mean and variance for stratified sampling
 Define 
 	\begin{align}
 	&g_i = \int_{\mathcal{X}_i} p(x) dx \\
@@ -428,44 +425,46 @@ with the variance given by
 Var(\theta) = \sum_{i=1}^m \frac{g_{i}^2 \sigma_{i}^2} {N_i}
 \end{equation}
 
-Variance reduction can now be cast as the following optimisation problem
+Variance reduction can now be cast as the following optimization problem
 \begin{align}
 \text{argmin}_{N_i} &Var(\tilde{\E(f(X))}\\
 &\text{st } \sum_{i=1}^m N_i = N
 \end{align}
-Using Lagrangian dual we can minimize 
+using the Lagrangian Dual we get 
 \begin{equation}
 \sum_{i=1}^m \frac{g_{i}^2 \sigma_{i}^2 } {N_i} + \lambda (N - \sum_{i=1}^m N_i)
 \end{equation}
 The optimum value comes out to be $N_i = \frac{g_i{\sigma_i}N }{\sum_{i=1}^m g_i{\sigma_i}}$
 
-The problem with the method is how to divide the data into mutually exculsive strata and estimating a good value for the unknown $\sigma_i$(Variance of strata i).
+The method is simple to understand and implement but it is not always possible to dive the data into mutually exclusive strata moreover estimating a value for $\sigma_i$(Variance of strata i) is hard and computationally expensive. 
 
 \section{Control Variate}
 
-We again use the same problem of estimating $\theta = \E(f(x)) = \int f(x) p_{\mathcal{X}} (x) dx$. Where p(x) is the joint density. In the case of Control variates we try to find another function h(x) which is similar f(x) such that $\E(h(x)) = \int h(x) p(x) dx = \tau $ is know , this function is called as the control variate. 
+We again use the problem of estimating $\theta$. Control Variate method find another function h(x) which is similar to f(x) such that $\E(h(x)) = \int h(x) p(x) dx = \tau $ is known, this function $h(x)$ is called the control variate. The equation $\theta = E[f(X)]$ can equivalently be written as  
 \begin{equation}
-	\theta = \int [f(x) - h(x)] f(x) dx + \tau = \E[f(x) - h(x)] + \tau
+	\theta = \int [f(x) - h(x)] p(x) dx + \tau = \E[f(x) - h(x)] + \tau
 \end{equation}
-The Monte Carlo estimate for this $\theta$ is 
+The Monte Carlo estimate for above equation is 
 \begin{align}
 &\widetilde{\theta} = \frac{1}{N} \sum_{i=1}^N [f(x_i) - h(x_i)] + \tau,  \\
 & \text{and} \\
 & var(\tilde{\theta}) = \frac{var(f_x) + var(h_x) - 2 cov(f(x), h(x))}{N}
 \end{align}
-There is a reduction in variance if 
+The variance of the estimator can be reduced if we choose the above the $h(x)$ such that 
 \begin{equation}
 corr(f(x), h(x)) > \frac{1}{2}
 \end{equation}
-The basic problem in using the method is identifying a suitable variate to use as a control variable.
+$corr$ denotes the correlation between $f(x)$ and $h(x)$ 
+
+Finding such a $h(x)$ is not trivial and sometimes not possible for many problems. We now look at the most popular variance reduction technique in literature. 
 
 \section{Importance Sampling }
-Importance sampling attempts to reduce the variance of the Monte Carlo estimate of $\theta = \E (f(x)) = \int f(x) p(x) dx $. Importance sampling changes the distribution from which the actual sampling is carried out.\\ In Monte Carlo the sample is generate from the from the distribution of x (with density p(x)). Suppose that it is possible to find a distribution H(x) with density h(x) with the property that f(x)p(x)/h(x) has small variability. Then $\theta$ can be expressed as
+Importance sampling attempts to reduce the variance of the Monte Carlo estimate by changing the distribution from which the actual sampling is carried out.\\ Monte Carlo estimates uses samples generated from the underlying distribution of x (with density p(x)). Suppose that it is possible to find another distribution H(x) with density h(x) with the property that $\frac{f(x)p(x)}{h(x)}$ has a small variance. Then $\theta$ can be expressed as
 \begin{equation}\label{Imporatnce Sampling}
-\theta =\int f(x)g(x)dx =\int  f(x) \frac{p(x)} {h(x)} h(x)dx = \E [\phi(x)]
+\theta =\int f(x)g(x)dx =\int  f(x) \frac{p(x)} {h(x)} h(x)dx = \E_{h(x)} [\phi(x)]
 \end{equation}
 
-where $\phi(x) = \frac{f(x) p(x)} {h(x)}$ and the expectation is with respect to H . The monte carlo estimate for $\theta$ we can now use $\phi(x)$ as follows 
+where $\phi(x) = \frac{f(x) p(x)} {h(x)}$ and the expectation is with respect to H . Now the monte carlo estimate for $\theta$ becomes 
 \begin{equation}
 \widetilde{\theta} = \frac{1}{N} \sum_{i=1}^N \phi(x_i) 
 \end{equation}
@@ -474,11 +473,11 @@ where $x_i = x_1, ......, x_n$ is sampled from H. The variance of this estimator
 var(\widetilde{\theta}) = \frac{1}{N} \int (\phi(x_i) - \theta)^2 h(x) dx = 
 \frac{1}{N}\int  \Big(\frac{f(x)p(x)}{h(x)}\Big)^2  h(x) dx  -\frac{\theta^2}{N}
 \end{equation}
-The variance will be smaller that of vanilla Monte carlo estimator if 
+For variance reduction we need, 
 \begin{equation}
 \int  \Big(\frac{f(x)p(x)}{h(x)}\Big)^2  h(x) dx  \leq \int f(x)^2 p(x) dx 
 \end{equation}
-The optimal distribution for such reduction is $h(x) \propto f(x) p(x)$. \\
+Below we show that the optimal distribution for variance reduction is of the form $h(x) \propto f(x) p(x)$. \\
 \begin{claim}
 It can be easily shown that if $h(x) = \frac{f(x) p(x)} {c}$ then for any other distribution 
 $\hat{h(x)}$. Var(h(x)) $\leq$ Var ($\hat{h(x)}$).
@@ -495,7 +494,8 @@ Var(\widetilde{\theta})_{h(x)} - \frac{\theta^2} {N} &= \int  \Big(\frac{f(x)p(x
 We get \ref{36} setting h(x) = $\frac{f(x)p(x)} {c}$ and using c = $\int (f(x)p(x) dx)$ \\
 \ref{c-s} using Cauchy-Schwartz Inequality.
 
-We see that of all the above discussed methods the Importance Sampling does not suffer from any glaring faults. We were able to easily find out the optimal distribution to sample from which would lead to most reduction in variance. This is the major reason we prefer to use importance sampling in our work instead of the other two.
+From the above discussion we have shown that the importance sampling methods are easiest to optimize for variance reduction and suffer from no faults like how to distributed the data into strata or how to define control variate.
+This are the major reason we prefer to use importance sampling in our work instead of the other two methods described above.
 
 \chapter{Submodularity and Diversity }
 
@@ -731,7 +731,7 @@ In particular DPP is a distribution over sets A of the form
 P(A) = $\frac{exp(F(A))}{\mathcal{Z}}$ , where F(A) = $\log |L_Y|$. Here, L $\in \mathbb{R}
 ^{N \times N}$ is a positive semi-definite matrix, $L_Y^{'}$ is the square submatrix indexed by $Y^{'}$ and $|   |$ denotes the determinant. Because K is positive semi-definite, F(A) is known to be submodular, and hence DPPs are log-submodular.
 
-\part{Related Work}
+\part{Related Work}\label{related work}
 \chapter{Optimization Based Methods}
 \section{Optimization Based Methods}
 In this chapter we give a brief survey of the works that use optimization techniques to solve the variance reduction problem in SGD.\\
