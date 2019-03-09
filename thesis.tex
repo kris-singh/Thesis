@@ -1410,14 +1410,14 @@ As we can see that all SSGD and its variants are still really slow as compared t
 
 \chapter{Conclusion and Future Work}
 
-In this work, we presented a novel framework to sample a diverse set of minibatches for a faster convergence of SGD algorithm. We argue that the modeling diversity is an  NP hard problem and hence we show that there exist a simple solution if use submodular functions. We next introduced a novel submodular function that models diversity. We applied our frame on different datasets and different tasks like transfer learning, Logistic Regression, Image Classification etc. We extensively studied the effects of parameters such as learning rate, batch ratio, epsilon on the performance of our algorithm. 
+In this work, we presented a novel framework to sample a diverse set of minibatches for a faster convergence of SGD algorithm. We argue that the modeling diversity is an NP hard problem but can be solved easily if we use submodular functions. We introduced a novel submodular function and a new submoudular optimization techniques for scaling to large dataset.A proof for how our submodular optimsation method reduces variance in SGD is give. We applied our frame on different datasets and different tasks like transfer learning, Logistic Regression, Image Classification etc and extensively studied the effects of parameters such as learning rate, batch ratio, epsilon on the performance of our algorithm. 
 The main contribution of our work is showing both empirically and theoretically that diversity based sampling for minibatch creation can lead variance reduction in SGD. Which in turn leads to faster convergence of SGD. \\
 Although our algorithm works comparable to random sampling on many datasets such as FMNIST and MNIST we show that in the case of CIFAR-10 dataset our algorithms outperforms random and loss based sampling by huge margins. We also show that for imbalanced dataset if we tune the learning rate correctly we can see faster convergence of SGD using our algorithm. Our algorithm is much slower in terms of wall clock time as compared to the random sampling algorithm. Below we list a few possible directions to make our algorithms faster,
 \begin{itemize}
 \item Instead of assigning scores to each data points, assigns probabilities to each subset using Probabilistic Submodular Functions.
-\item Use of distributed submodular maximization algorithms. These algorithms are really fast and provable bounds for accuracy of the results.
+\item Use of distributed submodular maximization algorithms. These algorithms are really fast and have provable bounds for accuracy of the results.
 \end{itemize}
-One area which is still left unexplored is the usage of our algorithm in the setting Natural Language Processing and Mutli task training. This is really interesting since submodular functions have extensively used in both these areas. A diverse batch would really be useful in the case of multi task learning as the batch would now be contain information of all tasks.
+One area which is still left unexplored is the usage of our algorithm in the setting Natural Language Processing and Multi task training. This is a really interesting setting since submodular functions have been extensively used in both these areas. A diverse batch would really be useful in the case of multi task learning as the batch would now be contain information from all tasks leading to better models being trained.
 \clearpage
 \newpage
 \addcontentsline{toc}{chapter}{References} % Please do not remove this
